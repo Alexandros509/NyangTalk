@@ -1,0 +1,1018 @@
+{
+  "contract_version": 3,
+  "note": "Game members used by the NyangTalk game component. Read from game metadata on 2026-11-19 (Steam buildid 26754239, Unity 6000.2.8f1). Facts about the game, not code from any other project.",
+  "verified_fingerprints": [],
+  "entries": [
+    {
+      "id": "mp.instance",
+      "area": "ChatReceive",
+      "assembly": "Assembly-CSharp",
+      "type": [
+        "BongoCat.Multiplayer.SteamMultiplayer"
+      ],
+      "kind": "field",
+      "name": [
+        "Instance"
+      ],
+      "returns": "BongoCat.Multiplayer.SteamMultiplayer",
+      "static": true
+    },
+    {
+      "id": "mp.chatBus",
+      "area": "ChatReceive",
+      "assembly": "Assembly-CSharp",
+      "type": [
+        "BongoCat.Multiplayer.SteamMultiplayer"
+      ],
+      "kind": "field",
+      "name": [
+        "OnChatReceived"
+      ],
+      "returns": "BongoCat.Multiplayer.SteamMultiplayer+Bus`1<System.String>"
+    },
+    {
+      "id": "mp.emoteBus",
+      "area": "ChatReceive",
+      "assembly": "Assembly-CSharp",
+      "type": [
+        "BongoCat.Multiplayer.SteamMultiplayer"
+      ],
+      "kind": "field",
+      "name": [
+        "OnEmoteReceived"
+      ],
+      "returns": "BongoCat.Multiplayer.SteamMultiplayer+Bus`1<System.Int32>",
+      "required": false
+    },
+    {
+      "id": "bus.global",
+      "area": "ChatReceive",
+      "assembly": "Assembly-CSharp",
+      "type": [
+        "BongoCat.Multiplayer.SteamMultiplayer+Bus`1"
+      ],
+      "kind": "field",
+      "name": [
+        "_globalCallbacks"
+      ],
+      "returns": "System.Collections.Generic.List`1<System.Action`2<Steamworks.CSteamID,!0>>"
+    },
+    {
+      "id": "mp.onLobbyChatMsg",
+      "area": "ChatReceive",
+      "assembly": "Assembly-CSharp",
+      "type": [
+        "BongoCat.Multiplayer.SteamMultiplayer"
+      ],
+      "kind": "method",
+      "name": [
+        "OnLobbyChatMsg"
+      ],
+      "returns": "System.Void",
+      "params": [
+        "Heathen.SteamworksIntegration.LobbyChatMsg"
+      ],
+      "required": false,
+      "note": "documented entry point; not called by the component"
+    },
+    {
+      "id": "steamid.value",
+      "area": "ChatReceive",
+      "assembly": "com.rlabrecque.steamworks.net",
+      "type": [
+        "Steamworks.CSteamID"
+      ],
+      "kind": "field",
+      "name": [
+        "m_SteamID"
+      ],
+      "returns": "System.UInt64"
+    },
+    {
+      "id": "mp.sendSpeech",
+      "area": "ChatSend",
+      "assembly": "Assembly-CSharp",
+      "type": [
+        "BongoCat.Multiplayer.SteamMultiplayer"
+      ],
+      "kind": "method",
+      "name": [
+        "SendSpeech"
+      ],
+      "returns": "System.Void",
+      "params": [
+        "System.String"
+      ],
+      "static": true
+    },
+    {
+      "id": "speech.type",
+      "area": "ChatSend",
+      "assembly": "Assembly-CSharp",
+      "type": [
+        "Vfx.CatSpeech"
+      ],
+      "kind": "type",
+      "required": false
+    },
+    {
+      "id": "speech.maxChars",
+      "area": "ChatSend",
+      "assembly": "Assembly-CSharp",
+      "type": [
+        "Vfx.CatSpeech"
+      ],
+      "kind": "field",
+      "name": [
+        "_maxChars"
+      ],
+      "returns": "System.Int32",
+      "required": false
+    },
+    {
+      "id": "speech.isMain",
+      "area": "ChatSend",
+      "assembly": "Assembly-CSharp",
+      "type": [
+        "Vfx.CatSpeech"
+      ],
+      "kind": "field",
+      "name": [
+        "_isMainCat"
+      ],
+      "returns": "System.Boolean",
+      "required": false
+    },
+    {
+      "id": "lobby.current",
+      "area": "LobbyInfo",
+      "assembly": "Heathen.Steamworks",
+      "type": [
+        "Heathen.SteamworksIntegration.LobbyData"
+      ],
+      "kind": "field",
+      "name": [
+        "Current"
+      ],
+      "returns": "Heathen.SteamworksIntegration.LobbyData",
+      "static": true
+    },
+    {
+      "id": "lobby.isValid",
+      "area": "LobbyInfo",
+      "assembly": "Heathen.Steamworks",
+      "type": [
+        "Heathen.SteamworksIntegration.LobbyData"
+      ],
+      "kind": "property",
+      "name": [
+        "IsValid"
+      ],
+      "returns": "System.Boolean"
+    },
+    {
+      "id": "lobby.name",
+      "area": "LobbyInfo",
+      "assembly": "Heathen.Steamworks",
+      "type": [
+        "Heathen.SteamworksIntegration.LobbyData"
+      ],
+      "kind": "property",
+      "name": [
+        "Name"
+      ],
+      "returns": "System.String"
+    },
+    {
+      "id": "lobby.memberCount",
+      "area": "LobbyInfo",
+      "assembly": "Heathen.Steamworks",
+      "type": [
+        "Heathen.SteamworksIntegration.LobbyData"
+      ],
+      "kind": "property",
+      "name": [
+        "MemberCount"
+      ],
+      "returns": "System.Int32"
+    },
+    {
+      "id": "lobby.steamId",
+      "area": "LobbyInfo",
+      "assembly": "Heathen.Steamworks",
+      "type": [
+        "Heathen.SteamworksIntegration.LobbyData"
+      ],
+      "kind": "property",
+      "name": [
+        "SteamId"
+      ],
+      "returns": "Steamworks.CSteamID"
+    },
+    {
+      "id": "lobby.data",
+      "area": "LobbyInfo",
+      "assembly": "Heathen.Steamworks",
+      "type": [
+        "Heathen.SteamworksIntegration.LobbyData"
+      ],
+      "kind": "method",
+      "name": [
+        "get_Item"
+      ],
+      "returns": "System.String",
+      "params": [
+        "System.String"
+      ]
+    },
+    {
+      "id": "lobbyIdDisplay.type",
+      "area": "LobbyInfo",
+      "assembly": "Assembly-CSharp",
+      "type": [
+        "BongoCat.Multiplayer.LobbyIdDisplay"
+      ],
+      "kind": "type",
+      "required": false
+    },
+    {
+      "id": "lobbyIdDisplay.codeText",
+      "area": "LobbyInfo",
+      "assembly": "Assembly-CSharp",
+      "type": [
+        "BongoCat.Multiplayer.LobbyIdDisplay"
+      ],
+      "kind": "field",
+      "name": [
+        "_lobbyCodeTxt"
+      ],
+      "returns": "TMPro.TMP_Text",
+      "required": false,
+      "note": "the text the game shows; code is taken from here so it matches the screen"
+    },
+    {
+      "id": "lobbyIdDisplay.hideKey",
+      "area": "LobbyInfo",
+      "assembly": "Assembly-CSharp",
+      "type": [
+        "BongoCat.Multiplayer.LobbyIdDisplay"
+      ],
+      "kind": "field",
+      "name": [
+        "HIDE_CODE_KEY"
+      ],
+      "returns": "System.String",
+      "static": true,
+      "required": false
+    },
+    {
+      "id": "tmp.text",
+      "area": "LobbyInfo",
+      "assembly": "Unity.TextMeshPro",
+      "type": [
+        "TMPro.TMP_Text"
+      ],
+      "kind": "property",
+      "name": [
+        "text"
+      ],
+      "returns": "System.String",
+      "required": false
+    },
+    {
+      "id": "lobby.members",
+      "area": "Participants",
+      "assembly": "Heathen.Steamworks",
+      "type": [
+        "Heathen.SteamworksIntegration.LobbyData"
+      ],
+      "kind": "property",
+      "name": [
+        "Members"
+      ],
+      "returns": "Heathen.SteamworksIntegration.LobbyMemberData[]"
+    },
+    {
+      "id": "member.user",
+      "area": "Participants",
+      "assembly": "Heathen.Steamworks",
+      "type": [
+        "Heathen.SteamworksIntegration.LobbyMemberData"
+      ],
+      "kind": "field",
+      "name": [
+        "user"
+      ],
+      "returns": "Heathen.SteamworksIntegration.UserData"
+    },
+    {
+      "id": "member.isOwner",
+      "area": "Participants",
+      "assembly": "Heathen.Steamworks",
+      "type": [
+        "Heathen.SteamworksIntegration.LobbyMemberData"
+      ],
+      "kind": "property",
+      "name": [
+        "IsOwner"
+      ],
+      "returns": "System.Boolean"
+    },
+    {
+      "id": "user.name",
+      "area": "Participants",
+      "assembly": "Heathen.Steamworks",
+      "type": [
+        "Heathen.SteamworksIntegration.UserData"
+      ],
+      "kind": "property",
+      "name": [
+        "Name"
+      ],
+      "returns": "System.String"
+    },
+    {
+      "id": "user.steamId",
+      "area": "Participants",
+      "assembly": "Heathen.Steamworks",
+      "type": [
+        "Heathen.SteamworksIntegration.UserData"
+      ],
+      "kind": "property",
+      "name": [
+        "SteamId"
+      ],
+      "returns": "System.UInt64"
+    },
+    {
+      "id": "user.isMe",
+      "area": "Participants",
+      "assembly": "Heathen.Steamworks",
+      "type": [
+        "Heathen.SteamworksIntegration.UserData"
+      ],
+      "kind": "property",
+      "name": [
+        "IsMe"
+      ],
+      "returns": "System.Boolean"
+    },
+    {
+      "id": "user.me",
+      "area": "Participants",
+      "assembly": "Heathen.Steamworks",
+      "type": [
+        "Heathen.SteamworksIntegration.UserData"
+      ],
+      "kind": "property",
+      "name": [
+        "Me"
+      ],
+      "returns": "Heathen.SteamworksIntegration.UserData",
+      "static": true
+    },
+    {
+      "id": "user.id",
+      "area": "Participants",
+      "assembly": "Heathen.Steamworks",
+      "type": [
+        "Heathen.SteamworksIntegration.UserData"
+      ],
+      "kind": "field",
+      "name": [
+        "id"
+      ],
+      "returns": "Steamworks.CSteamID"
+    },
+    {
+      "id": "member.skin",
+      "area": "Appearance",
+      "assembly": "Heathen.Steamworks",
+      "type": [
+        "Heathen.SteamworksIntegration.LobbyMemberData"
+      ],
+      "kind": "property",
+      "name": [
+        "Skin"
+      ],
+      "returns": "System.Int32"
+    },
+    {
+      "id": "member.hat",
+      "area": "Appearance",
+      "assembly": "Heathen.Steamworks",
+      "type": [
+        "Heathen.SteamworksIntegration.LobbyMemberData"
+      ],
+      "kind": "property",
+      "name": [
+        "Hat"
+      ],
+      "returns": "System.Int32"
+    },
+    {
+      "id": "chest.type",
+      "area": "Chest",
+      "assembly": "Assembly-CSharp",
+      "type": [
+        "BongoCat.ChestType"
+      ],
+      "kind": "type"
+    },
+    {
+      "id": "memberInstance.type",
+      "area": "Appearance",
+      "assembly": "Assembly-CSharp",
+      "type": [
+        "BongoCat.Multiplayer.LobbyMemberInstance"
+      ],
+      "kind": "type",
+      "required": false
+    },
+    {
+      "id": "memberInstance.cat",
+      "area": "Appearance",
+      "assembly": "Assembly-CSharp",
+      "type": [
+        "BongoCat.Multiplayer.LobbyMemberInstance"
+      ],
+      "kind": "field",
+      "name": [
+        "cat"
+      ],
+      "returns": "BongoCat.Cat",
+      "required": false
+    },
+    {
+      "id": "memberInstance.user",
+      "area": "Appearance",
+      "assembly": "Assembly-CSharp",
+      "type": [
+        "BongoCat.Multiplayer.LobbyMemberInstance"
+      ],
+      "kind": "field",
+      "name": [
+        "steamUserData"
+      ],
+      "returns": "Heathen.SteamworksIntegration.SteamUserData",
+      "required": false
+    },
+    {
+      "id": "steamUserData.data",
+      "area": "Appearance",
+      "assembly": "Heathen.Steamworks",
+      "type": [
+        "Heathen.SteamworksIntegration.SteamUserData"
+      ],
+      "kind": "property",
+      "name": [
+        "Data"
+      ],
+      "returns": "Heathen.SteamworksIntegration.UserData",
+      "required": false
+    },
+    {
+      "id": "cat.instance",
+      "area": "Appearance",
+      "assembly": "Assembly-CSharp",
+      "type": [
+        "BongoCat.Cat"
+      ],
+      "kind": "field",
+      "name": [
+        "Instance"
+      ],
+      "returns": "BongoCat.Cat",
+      "static": true,
+      "required": false
+    },
+    {
+      "id": "cat.bodyImage",
+      "area": "Appearance",
+      "assembly": "Assembly-CSharp",
+      "type": [
+        "BongoCat.Cat"
+      ],
+      "kind": "field",
+      "name": [
+        "_bodyImage"
+      ],
+      "returns": "UnityEngine.UI.Image",
+      "required": false
+    },
+    {
+      "id": "cat.pawImage",
+      "area": "Appearance",
+      "assembly": "Assembly-CSharp",
+      "type": [
+        "BongoCat.Cat"
+      ],
+      "kind": "field",
+      "name": [
+        "_rightPawImage"
+      ],
+      "returns": "UnityEngine.UI.Image",
+      "required": false
+    },
+    {
+      "id": "cat.hatImage",
+      "area": "Appearance",
+      "assembly": "Assembly-CSharp",
+      "type": [
+        "BongoCat.Cat"
+      ],
+      "kind": "field",
+      "name": [
+        "_hatImage"
+      ],
+      "returns": "UnityEngine.UI.Image",
+      "required": false
+    },
+    {
+      "id": "cat.baseSprite",
+      "area": "Appearance",
+      "assembly": "Assembly-CSharp",
+      "type": [
+        "BongoCat.Cat"
+      ],
+      "kind": "method",
+      "name": [
+        "GetBaseSprite"
+      ],
+      "returns": "UnityEngine.Sprite",
+      "params": [],
+      "required": false
+    },
+    {
+      "id": "cat.frontSprite",
+      "area": "Appearance",
+      "assembly": "Assembly-CSharp",
+      "type": [
+        "BongoCat.Cat"
+      ],
+      "kind": "method",
+      "name": [
+        "GetFrontSprite"
+      ],
+      "returns": "UnityEngine.Sprite",
+      "params": [],
+      "required": false
+    },
+    {
+      "id": "cat.hatSprite",
+      "area": "Appearance",
+      "assembly": "Assembly-CSharp",
+      "type": [
+        "BongoCat.Cat"
+      ],
+      "kind": "method",
+      "name": [
+        "GetHatSprite"
+      ],
+      "returns": "UnityEngine.Sprite",
+      "params": [],
+      "required": false
+    },
+    {
+      "id": "items.inst",
+      "area": "Appearance",
+      "assembly": "Assembly-CSharp",
+      "type": [
+        "BongoCat.SteamItemIdReference"
+      ],
+      "kind": "field",
+      "name": [
+        "Inst"
+      ],
+      "returns": "BongoCat.SteamItemIdReference",
+      "static": true,
+      "required": false
+    },
+    {
+      "id": "items.tryGet",
+      "area": "Appearance",
+      "assembly": "Assembly-CSharp",
+      "type": [
+        "BongoCat.SteamItemIdReference"
+      ],
+      "kind": "method",
+      "name": [
+        "TryGetItem"
+      ],
+      "returns": "System.Boolean",
+      "params": [
+        "System.Int32",
+        "BongoCat.SteamItemRuntime&"
+      ],
+      "required": false
+    },
+    {
+      "id": "item.icon",
+      "area": "Appearance",
+      "assembly": "Assembly-CSharp",
+      "type": [
+        "BongoCat.SteamItemRuntime"
+      ],
+      "kind": "field",
+      "name": [
+        "Icon"
+      ],
+      "returns": "UnityEngine.Sprite",
+      "required": false
+    },
+    {
+      "id": "item.fullImage",
+      "area": "Appearance",
+      "assembly": "Assembly-CSharp",
+      "type": [
+        "BongoCat.SteamItemRuntime"
+      ],
+      "kind": "field",
+      "name": [
+        "FullImage"
+      ],
+      "returns": "UnityEngine.Sprite",
+      "required": false
+    },
+    {
+      "id": "item.name",
+      "area": "Appearance",
+      "assembly": "Assembly-CSharp",
+      "type": [
+        "BongoCat.SteamItemRuntime"
+      ],
+      "kind": "property",
+      "name": [
+        "ItemName"
+      ],
+      "returns": "System.String",
+      "required": false
+    },
+    {
+      "id": "settings.instance",
+      "area": "ChatSend",
+      "assembly": "Assembly-CSharp",
+      "type": [
+        "BongoCat.SettingsManager"
+      ],
+      "kind": "field",
+      "name": [
+        "Instance"
+      ],
+      "returns": "BongoCat.SettingsManager",
+      "static": true,
+      "required": false
+    },
+    {
+      "id": "settings.chatFilter",
+      "area": "ChatSend",
+      "assembly": "Assembly-CSharp",
+      "type": [
+        "BongoCat.SettingsManager"
+      ],
+      "kind": "field",
+      "name": [
+        "ChatLanguageFilter"
+      ],
+      "returns": "BongoCat.PlayerPrefsToggle",
+      "required": false
+    },
+    {
+      "id": "toggle.value",
+      "area": "ChatSend",
+      "assembly": "Assembly-CSharp",
+      "type": [
+        "BongoCat.PlayerPrefsToggle"
+      ],
+      "kind": "property",
+      "name": [
+        "Value"
+      ],
+      "returns": "System.Boolean",
+      "required": false
+    },
+    {
+      "id": "bwf.instance",
+      "area": "ChatSend",
+      "assembly": "Assembly-CSharp-firstpass",
+      "type": [
+        "Crosstales.BWF.BWFManager"
+      ],
+      "kind": "property",
+      "name": [
+        "Instance"
+      ],
+      "returns": "!0",
+      "static": true,
+      "required": false,
+      "inherited": true,
+      "note": "static property of the generic base Singleton<T>"
+    },
+    {
+      "id": "bwf.ready",
+      "area": "ChatSend",
+      "assembly": "Assembly-CSharp-firstpass",
+      "type": [
+        "Crosstales.BWF.BWFManager"
+      ],
+      "kind": "property",
+      "name": [
+        "isReady"
+      ],
+      "returns": "System.Boolean",
+      "required": false
+    },
+    {
+      "id": "bwf.contains",
+      "area": "ChatSend",
+      "assembly": "Assembly-CSharp-firstpass",
+      "type": [
+        "Crosstales.BWF.BWFManager"
+      ],
+      "kind": "method",
+      "name": [
+        "Contains"
+      ],
+      "returns": "System.Boolean",
+      "params": [
+        "System.String",
+        "Crosstales.BWF.Model.Enum.ManagerMask",
+        "System.String[]"
+      ],
+      "required": false
+    },
+    {
+      "id": "bwf.maskAll",
+      "area": "ChatSend",
+      "assembly": "Assembly-CSharp-firstpass",
+      "type": [
+        "Crosstales.BWF.Model.Enum.ManagerMask"
+      ],
+      "kind": "field",
+      "name": [
+        "All"
+      ],
+      "returns": "Crosstales.BWF.Model.Enum.ManagerMask",
+      "static": true,
+      "required": false
+    },
+    {
+      "id": "bwf.maskPunctuation",
+      "area": "ChatSend",
+      "assembly": "Assembly-CSharp-firstpass",
+      "type": [
+        "Crosstales.BWF.Model.Enum.ManagerMask"
+      ],
+      "kind": "field",
+      "name": [
+        "Punctuation"
+      ],
+      "returns": "Crosstales.BWF.Model.Enum.ManagerMask",
+      "static": true,
+      "required": false
+    },
+    {
+      "id": "punct.instance",
+      "area": "ChatSend",
+      "assembly": "Assembly-CSharp-firstpass",
+      "type": [
+        "Crosstales.BWF.Manager.PunctuationManager"
+      ],
+      "kind": "property",
+      "name": [
+        "Instance"
+      ],
+      "returns": "!0",
+      "static": true,
+      "required": false,
+      "inherited": true
+    },
+    {
+      "id": "punct.count",
+      "area": "ChatSend",
+      "assembly": "Assembly-CSharp-firstpass",
+      "type": [
+        "Crosstales.BWF.Manager.PunctuationManager"
+      ],
+      "kind": "property",
+      "name": [
+        "PunctuationCharsNumber"
+      ],
+      "returns": "System.Int32",
+      "required": false
+    },
+    {
+      "id": "shop.normal",
+      "area": "Chest",
+      "assembly": "Assembly-CSharp",
+      "type": [
+        "BongoCat.Shop"
+      ],
+      "kind": "field",
+      "name": [
+        "NormalShop"
+      ],
+      "returns": "BongoCat.Shop",
+      "static": true,
+      "required": true
+    },
+    {
+      "id": "shop.emote",
+      "area": "Chest",
+      "assembly": "Assembly-CSharp",
+      "type": [
+        "BongoCat.Shop"
+      ],
+      "kind": "field",
+      "name": [
+        "EmoteShop"
+      ],
+      "returns": "BongoCat.Shop",
+      "static": true,
+      "required": true
+    },
+    {
+      "id": "shop.chestType",
+      "area": "Chest",
+      "assembly": "Assembly-CSharp",
+      "type": [
+        "BongoCat.Shop"
+      ],
+      "kind": "property",
+      "name": [
+        "ChestType"
+      ],
+      "returns": "BongoCat.ChestType",
+      "required": true
+    },
+    {
+      "id": "shop.ready",
+      "area": "Chest",
+      "assembly": "Assembly-CSharp",
+      "type": [
+        "BongoCat.Shop"
+      ],
+      "kind": "field",
+      "name": [
+        "ChestIsReady"
+      ],
+      "returns": "System.Boolean",
+      "required": true
+    },
+    {
+      "id": "shop.canGet",
+      "area": "Chest",
+      "assembly": "Assembly-CSharp",
+      "type": [
+        "BongoCat.Shop"
+      ],
+      "kind": "property",
+      "name": [
+        "CanGetChest"
+      ],
+      "returns": "System.Boolean",
+      "required": true
+    },
+    {
+      "id": "shop.canAfford",
+      "area": "Chest",
+      "assembly": "Assembly-CSharp",
+      "type": [
+        "BongoCat.Shop"
+      ],
+      "kind": "property",
+      "name": [
+        "CanAffordChest"
+      ],
+      "returns": "System.Boolean",
+      "required": true
+    },
+    {
+      "id": "shop.opening",
+      "area": "Chest",
+      "assembly": "Assembly-CSharp",
+      "type": [
+        "BongoCat.Shop"
+      ],
+      "kind": "field",
+      "name": [
+        "_openingChest"
+      ],
+      "returns": "System.Boolean",
+      "required": true
+    },
+    {
+      "id": "shop.click",
+      "area": "Chest",
+      "assembly": "Assembly-CSharp",
+      "type": [
+        "BongoCat.Shop"
+      ],
+      "kind": "method",
+      "name": [
+        "OnClick"
+      ],
+      "returns": "System.Void",
+      "params": [],
+      "required": true,
+      "note": "the game's own click handler: normal cost and reward path"
+    },
+    {
+      "id": "chest.exchanging",
+      "area": "Chest",
+      "assembly": "Assembly-CSharp",
+      "type": [
+        "Steam.ChestExchanger"
+      ],
+      "kind": "field",
+      "name": [
+        "IsExchanging"
+      ],
+      "returns": "System.Boolean",
+      "static": true,
+      "required": true
+    },
+    {
+      "id": "gift.type",
+      "area": "Chest",
+      "assembly": "Assembly-CSharp",
+      "type": [
+        "BongoCat.Multiplayer.OpenChestForMember"
+      ],
+      "kind": "type",
+      "required": false
+    },
+    {
+      "id": "gift.target",
+      "area": "Chest",
+      "assembly": "Assembly-CSharp",
+      "type": [
+        "BongoCat.Multiplayer.OpenChestForMember"
+      ],
+      "kind": "field",
+      "required": false,
+      "name": [
+        "_targetUser"
+      ],
+      "returns": "Heathen.SteamworksIntegration.SteamUserData"
+    },
+    {
+      "id": "gift.chestType",
+      "area": "Chest",
+      "assembly": "Assembly-CSharp",
+      "type": [
+        "BongoCat.Multiplayer.OpenChestForMember"
+      ],
+      "kind": "field",
+      "required": false,
+      "name": [
+        "_chestType"
+      ],
+      "returns": "BongoCat.ChestType"
+    },
+    {
+      "id": "gift.clicked",
+      "area": "Chest",
+      "assembly": "Assembly-CSharp",
+      "type": [
+        "BongoCat.Multiplayer.OpenChestForMember"
+      ],
+      "kind": "field",
+      "required": false,
+      "name": [
+        "_hasClicked"
+      ],
+      "returns": "System.Boolean"
+    },
+    {
+      "id": "gift.shop",
+      "area": "Chest",
+      "assembly": "Assembly-CSharp",
+      "type": [
+        "BongoCat.Multiplayer.OpenChestForMember"
+      ],
+      "kind": "property",
+      "required": false,
+      "name": [
+        "TargetShop"
+      ],
+      "returns": "BongoCat.Shop"
+    },
+    {
+      "id": "gift.click",
+      "area": "Chest",
+      "assembly": "Assembly-CSharp",
+      "type": [
+        "BongoCat.Multiplayer.OpenChestForMember"
+      ],
+      "kind": "method",
+      "required": false,
+      "name": [
+        "OnClicked"
+      ],
+      "returns": "System.Void",
+      "params": [],
+      "note": "the game's own click on another member's chest (80-SPEC 2장)"
+    }
+  ]
+}

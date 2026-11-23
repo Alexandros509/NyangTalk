@@ -1,0 +1,40 @@
+# --- Build output and release artifacts ---
+build/
+dist/
+*.zip
+# LGPL-2.1 source archives attached to every release (third_party/SOURCES.md) are tracked
+!third_party/sources/*.zip
+*.tmp-*
+
+# --- Signing keys and secrets (never commit) ---
+# Release signing keys are stored outside this repository.
+/tools/keys/
+*.key
+*.pem
+*.pfx
+*.p12
+*.snk
+*.secret
+.env
+.env.*
+
+# --- Local test overrides ---
+update-override.txt
+
+# --- Chat records, logs and crash dumps (may contain conversations, names, Steam IDs) ---
+*.ndjson
+*.jsonl
+*.log
+*.dmp
+
+# --- Editor and IDE settings ---
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+
+# --- Windows clutter ---
+Thumbs.db
+desktop.ini
+*.lnk

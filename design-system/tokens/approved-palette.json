@@ -1,0 +1,218 @@
+{
+  "roles": [
+    "window",
+    "panel",
+    "otherBubble",
+    "soft",
+    "border",
+    "text",
+    "midText",
+    "subText",
+    "faintText",
+    "datePill",
+    "datePillText",
+    "accent",
+    "accentText"
+  ],
+  "palettes": {
+    "default": {
+      "light": [
+        "#BACDDC",
+        "#FCFCF8",
+        "#FFFFFF",
+        "#D3E0E9",
+        "#E3E9ED",
+        "#293B46",
+        "#394754",
+        "#718795",
+        "#84909A",
+        "#A7BFCE",
+        "#496373",
+        "#FFE36B",
+        "#293B46"
+      ],
+      "dark": [
+        "#131922",
+        "#1D2530",
+        "#2A3544",
+        "#253140",
+        "#354354",
+        "#EEF3F8",
+        "#CBD6E1",
+        "#A4B5C6",
+        "#93A5B7",
+        "#293746",
+        "#B9CBD9",
+        "#FFE36B",
+        "#293B46"
+      ]
+    },
+    "mint": {
+      "light": [
+        "#E7EFE9",
+        "#F7FAF8",
+        "#FFFFFF",
+        "#DCE8E0",
+        "#D3DED7",
+        "#1F2D27",
+        "#3D5248",
+        "#586E63",
+        "#6F8378",
+        "#C9DCD1",
+        "#3F5A4D",
+        "#1B7F53",
+        "#FFFFFF"
+      ],
+      "dark": [
+        "#0F1714",
+        "#17221D",
+        "#22302A",
+        "#1D2A24",
+        "#2F4037",
+        "#E9F2ED",
+        "#C5D5CC",
+        "#9DB3A7",
+        "#8BA196",
+        "#22332B",
+        "#B5CDBF",
+        "#1B7F53",
+        "#FFFFFF"
+      ]
+    },
+    "sky": {
+      "light": [
+        "#E6EEF7",
+        "#F8FAFD",
+        "#FFFFFF",
+        "#D9E5F2",
+        "#D2DCE8",
+        "#1C2A3A",
+        "#3A4E66",
+        "#566C86",
+        "#6C7F96",
+        "#C7D8EA",
+        "#3C5878",
+        "#1F6FD0",
+        "#FFFFFF"
+      ],
+      "dark": [
+        "#0E1621",
+        "#17212B",
+        "#222E3C",
+        "#1C2835",
+        "#2E3D4E",
+        "#EAF1F8",
+        "#C6D3E0",
+        "#9CAFC3",
+        "#8A9DB2",
+        "#223246",
+        "#B3C8DD",
+        "#1F6FD0",
+        "#FFFFFF"
+      ]
+    },
+    "purple": {
+      "light": [
+        "#EEEAF7",
+        "#FAF9FD",
+        "#FFFFFF",
+        "#E2DCF1",
+        "#D9D3E8",
+        "#272036",
+        "#463C60",
+        "#645A80",
+        "#7A7193",
+        "#D3CBE9",
+        "#4F4470",
+        "#6A4BD6",
+        "#FFFFFF"
+      ],
+      "dark": [
+        "#14111D",
+        "#1D1929",
+        "#2A2539",
+        "#231F31",
+        "#3A3350",
+        "#F0ECF8",
+        "#D0C9E0",
+        "#A9A0C0",
+        "#968DAF",
+        "#2B2540",
+        "#C3B8DD",
+        "#6A4BD6",
+        "#FFFFFF"
+      ]
+    },
+    "peach": {
+      "light": [
+        "#FBE9E4",
+        "#FFF9F7",
+        "#FFFFFF",
+        "#F6DCD5",
+        "#EFD3CC",
+        "#3A2623",
+        "#5E423D",
+        "#7D5C56",
+        "#8F706A",
+        "#F2CFC6",
+        "#74514A",
+        "#C9365B",
+        "#FFFFFF"
+      ],
+      "dark": [
+        "#1B1314",
+        "#261B1C",
+        "#35272A",
+        "#2D2123",
+        "#4A373A",
+        "#F8ECEA",
+        "#E0CBC8",
+        "#BFA3A0",
+        "#AC918E",
+        "#36272A",
+        "#DDBFBB",
+        "#C9365B",
+        "#FFFFFF"
+      ]
+    },
+    "mono": {
+      "light": [
+        "#F1F1F1",
+        "#FFFFFF",
+        "#FFFFFF",
+        "#E6E6E6",
+        "#DADADA",
+        "#1A1A1A",
+        "#3D3D3D",
+        "#5E5E5E",
+        "#757575",
+        "#DDDDDD",
+        "#4A4A4A",
+        "#2B2B2B",
+        "#FFFFFF"
+      ],
+      "dark": [
+        "#101010",
+        "#1A1A1A",
+        "#262626",
+        "#202020",
+        "#383838",
+        "#F2F2F2",
+        "#D0D0D0",
+        "#A6A6A6",
+        "#909090",
+        "#262626",
+        "#C8C8C8",
+        "#EDEDED",
+        "#1A1A1A"
+      ]
+    }
+  },
+  "headerStyle": {
+    "Radius": 8,
+    "BorderWidth": 1,
+    "HoverOpacity": 0.8,
+    "DisabledOpacity": 0.4,
+    "PressedUsesHover": true
+  }
+}
