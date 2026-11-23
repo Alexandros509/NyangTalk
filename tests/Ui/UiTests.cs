@@ -510,9 +510,9 @@ namespace NyangTalk.Tests
                 A.Eq("Send", rig.Form.SendButton.Text, "english");
                 rig.Host.Prefs.Settings.Set("ui.language", "ja");
                 A.Eq("送信", rig.Form.SendButton.Text, "japanese");
-                A.Eq("NyangTalk 0.1.0", rig.Form.Text, "title: name and version only (no 비공식, user decision 2026-11-20)");
+                A.Eq("NyangTalk " + AppVersion.Text, rig.Form.Text, "title: name and version only");
                 rig.Host.Prefs.Settings.Set("ui.language", "ko");
-                A.Eq("NyangTalk 0.1.0", rig.Form.Text, "title shows the version");
+                A.Eq("NyangTalk " + AppVersion.Text, rig.Form.Text, "title shows the version");
             }
         }
 

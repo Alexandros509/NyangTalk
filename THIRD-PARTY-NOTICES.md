@@ -35,8 +35,9 @@ app window and are not installed into Windows.
 Used at build time only, not distributed: the .NET Framework 4.8 compiler and reference assemblies (part of Windows) and
 the Unity engine modules in the user's game folder (compile references of the game component).
 
-The app icon (`assets/app.ico`) is generated from NyangTalk's own speech-bubble and N shapes by `tools/IconBuild.cs`
-under the MIT license. It contains no game artwork (see `docs/design-assets-licenses.md`).
+The app icon (`assets/app.ico`) was provided by the user and is based on game artwork.
+Rights in the underlying artwork remain with their respective owners; the icon is excluded from the MIT license
+for NyangTalk's own code (see `docs/design-assets-licenses.md`).
 
 Facts about the game (type and member names in `contract.json`) were read from the user's own game installation for
 interoperability. Bongo Cat and its files belong to their owners; NyangTalk is unofficial and not affiliated with them.

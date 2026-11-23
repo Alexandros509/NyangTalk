@@ -24,7 +24,7 @@ namespace NyangTalk.Tests
 
         /// <summary>70-3.7 and 01-3.2: no cat pictures or game code in what we ship; 30-7.2.3: every bundled asset has a license entry.</summary>
         [Test("70-3.7,30-7.2.3,01-3.2")]
-        public static void ShippedFilesHaveNoGameContent()
+        public static void DistributionAssetsAreListedAndGameAssembliesAreExcluded()
         {
             var listed = File.ReadAllText(Path.Combine(Ctx.Root, "docs", "design-assets-licenses.md"));
             foreach (var dir in new[] { "src", "assets" })

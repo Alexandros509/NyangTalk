@@ -32,6 +32,7 @@ namespace NyangTalk.App
 
         // layout parts
         public readonly Panel Sidebar = new Panel();
+        public readonly ScrollArea SidebarArea = new ScrollArea();
         public readonly Splitter SidebarSplitter = new Splitter();
         public readonly Panel Main = new Panel();
         public readonly Panel Header = new Panel();
@@ -79,7 +80,6 @@ namespace NyangTalk.App
         public readonly Panel SidebarBottom = new Panel();
         public readonly Label MyName = new Label();
         public readonly Label LinkDot = new Label();
-        public readonly IconButton SidebarSettings = new IconButton(IconKind.Gear);
         // 95-SPEC 2.9: first-run language screen inside the main window (never a separate popup)
         public readonly Panel FirstRunPanel = new Panel();
         public readonly Label FirstRunTitle = new Label();
@@ -128,7 +128,7 @@ namespace NyangTalk.App
             _host.Bus.Subscribe<NoticeRaised>(e => ShowNotice(e.Key, L(e.Text)));
             _prefs.Settings.Changed += k => { if (k == "chat.retentionDays") { try { _host.Exchange.WriteRetention(_prefs.Settings.GetInt(k)); } catch (IOException ex) { _host.AddLog("retention: " + ex.Message); } } };
             _prefs.Changed += () => { ApplyStyle(); ApplyLayoutFromSetting(); _dirty = true; Chat.InvalidateLayout(); };
-            _prefs.Settings.Changed += k => { if (k == "screen.windowSize") ApplyWindowSize(false); };
+            _prefs.Settings.Changed += k => { if (k == "screen.windowSize" || k == "screen.layout") ApplyWindowSize(false); };
             ResizeEnd += (s, e) => OnUserResized();
             FormClosing += (s, e) => { if (_prefs.Settings.Get("screen.windowSize") == WindowSizes.Custom && WindowState == FormWindowState.Normal) _prefs.SaveWindowSize("main", DisplayScale.Logical(Width, DeviceDpiSafe), DisplayScale.Logical(Height, DeviceDpiSafe)); };
             _prefs.SaveFailed += key => ShowNotice("save:" + key, L(key));
@@ -268,13 +268,19 @@ namespace NyangTalk.App
             // sidebar
             Sidebar.Dock = DockStyle.Left; Sidebar.Width = _prefs.Settings.GetInt("screen.sidebarWidth"); Sidebar.Padding = new Padding(10, 8, 8, 8);
             SidebarSplitter.Dock = DockStyle.Left; SidebarSplitter.MinSize = 200; SidebarSplitter.MinExtra = 360; SidebarSplitter.Width = 4;
-            SidebarSplitter.SplitterMoved += (s, e) => { var w = Math.Max(200, Math.Min(320, Sidebar.Width)); Sidebar.Width = w; _prefs.Settings.Set("screen.sidebarWidth", w); };
+            SidebarSplitter.SplitterMoved += (s, e) =>
+            {
+                int w = Math.Max(200, Math.Min(320, DisplayScale.Logical(Sidebar.Width, DeviceDpiSafe)));
+                _prefs.Settings.Set("screen.sidebarWidth", w);
+                Sidebar.Width = DisplayScale.Pixels(w, DeviceDpiSafe);
+            };
             AppTitle.Text = "NyangTalk"; AppTitle.Font = Fonts.Create("Pretendard", 12f, FontStyle.Bold); AppTitle.AutoSize = false; AppTitle.Height = 28;
             Glyph(CollapseButton, "⟨", "menu.sidebarToggle"); CollapseButton.Click += (s, e) => ToggleSidebar();
             Glyph(ExpandButton, "⟩", "menu.sidebarToggle"); ExpandButton.Click += (s, e) => ToggleSidebar(); ExpandButton.Visible = false;
             GlobalSearchButton.Text = L("search.global"); GlobalSearchButton.AccessibleName = L("search.global"); GlobalSearchButton.FlatStyle = FlatStyle.Flat; GlobalSearchButton.TextAlign = ContentAlignment.MiddleLeft; GlobalSearchButton.Click += (s, e) => OpenGlobalSearch();
             CurrentHeader.Text = L("room.current"); CurrentHeader.Height = 22;
             CurrentRoomButton.FlatStyle = FlatStyle.Flat; CurrentRoomButton.TextAlign = ContentAlignment.MiddleLeft; CurrentRoomButton.AutoEllipsis = false; CurrentRoomButton.Click += (s, e) => { if (_chat.IsArchivedView) _chat.CloseArchived(); };
+            CurrentRoomButton.TextChanged += (s, e) => LayoutSidebar();
             ArchiveHeader.Text = L("room.archived"); ArchiveHeader.Height = 22;
             ArchiveList.AccessibleName = L("room.archived");
             ArchiveList.DoubleClick += (s, e) => OpenSelectedArchive();
@@ -282,13 +288,18 @@ namespace NyangTalk.App
             ArchiveList.MouseUp += (s, e) => { if (e.Button == MouseButtons.Right) ArchiveMenu(e.Location); else OpenSelectedArchive(); };
             AutomationPanel.Height = 44; AutomationPanel.Visible = false; AutomationLabel.Dock = DockStyle.Fill; AutomationLabel.Cursor = Cursors.Hand;
             AutomationLabel.Click += (s, e) => OpenSettings("auto");
+            AutomationLabel.TextChanged += (s, e) => LayoutSidebar();
             AutomationPanel.Controls.Add(AutomationLabel);
             SidebarBottom.Height = 56;
             MyName.AutoEllipsis = true; LinkDot.AutoSize = false; LinkDot.Text = "●";
-            Glyph(SidebarSettings, "⚙", "menu.settings"); SidebarSettings.Click += (s, e) => OpenSettings();
-            SidebarBottom.Controls.AddRange(new Control[] { MyName, LinkDot, SidebarSettings });
+            SidebarBottom.Controls.AddRange(new Control[] { MyName, LinkDot });
             SidebarBottom.Resize += (s, e) => LayoutSidebarBottom();
-            Sidebar.Controls.AddRange(new Control[] { AppTitle, CollapseButton, GlobalSearchButton, CurrentHeader, CurrentRoomButton, ArchiveHeader, ArchiveList, AutomationPanel, SidebarBottom });
+            var sidebarControls = new Control[] { AppTitle, CollapseButton, GlobalSearchButton, CurrentHeader, CurrentRoomButton, ArchiveHeader, ArchiveList, AutomationPanel, SidebarBottom };
+            SidebarArea.Dock = DockStyle.Fill;
+            SidebarArea.Content.Controls.AddRange(sidebarControls);
+            Sidebar.Controls.Add(SidebarArea);
+            foreach (var control in sidebarControls) control.Enter += (s, e) => SidebarArea.EnsureVisible((Control)s);
+            SidebarArea.Resize += (s, e) => LayoutSidebar();
             Sidebar.Resize += (s, e) => LayoutSidebar();
 
             Controls.Add(Main);
@@ -406,8 +417,8 @@ namespace NyangTalk.App
             }
             Faces.Font = _headerPillFont ?? Font;
             Faces.Size = new Size(Faces.PreferredWidth, HeaderPill.HeightFor(Faces.Font));
-            var all = sidebar ? new Control[] { SearchButton, ReconnectButton } : new Control[] { RoomsButton, SearchButton, ReconnectButton, SettingsButton };
-            var hideOrder = sidebar ? new Control[] { Faces, ReconnectButton } : (pill ? new Control[] { ReconnectButton, RoomsButton, Faces, SearchButton } : new Control[] { ReconnectButton, RoomsButton, Faces });
+            var all = sidebar ? new Control[] { SearchButton, ReconnectButton, SettingsButton } : new Control[] { RoomsButton, SearchButton, ReconnectButton, SettingsButton };
+            var hideOrder = sidebar ? new Control[] { Faces, ReconnectButton, SearchButton } : (pill ? new Control[] { ReconnectButton, RoomsButton, Faces, SearchButton } : new Control[] { ReconnectButton, RoomsButton, Faces });
             int titleLeft = ExpandButton.Visible ? 44 : 10;
             int width = Header.ClientSize.Width;
             Overflow.Clear();
@@ -422,7 +433,9 @@ namespace NyangTalk.App
             MoreButton.Visible = Overflow.Count > 0;
             Faces.Visible = !Overflow.Contains(Faces);
             int right = width - edge;
-            foreach (var b in (MoreButton.Visible ? new Control[] { MoreButton } : new Control[0]).Concat(all.Reverse().Where(b => b.Visible)))
+            foreach (var b in new Control[] { SettingsButton }
+                .Concat(MoreButton.Visible ? new Control[] { MoreButton } : new Control[0])
+                .Concat(all.Reverse().Where(b => b != SettingsButton && b.Visible)))
             {
                 right -= b.Width; b.Location = new Point(right, (Header.ClientSize.Height - b.Height) / 2); right -= gap;
             }
@@ -476,31 +489,59 @@ namespace NyangTalk.App
             }
         }
 
+        private bool _layingOutSidebar;
         private void LayoutSidebar()
         {
-            if (Sidebar.Dock == DockStyle.Left && ClientSize.Height > 100 && Sidebar.Height != ClientSize.Height)
-                Sidebar.Height = ClientSize.Height;
-            int sideH = Math.Max(Sidebar.ClientSize.Height, ClientSize.Height);
-            int w = Sidebar.ClientSize.Width - Sidebar.Padding.Horizontal;
-            int x = Sidebar.Padding.Left, y = Sidebar.Padding.Top;
-            AppTitle.SetBounds(x, y, w - 36, 28); CollapseButton.Location = new Point(x + w - 32, y); y += 34;
-            GlobalSearchButton.SetBounds(x, y, w, 28); y += 36;
-            CurrentHeader.SetBounds(x, y, w, 20); y += 22;
-            int roomH = TextRenderer.MeasureText("A" + Environment.NewLine + "A", CurrentRoomButton.Font).Height + 12;
-            CurrentRoomButton.SetBounds(x, y, w, roomH); y += roomH + 8;
-            ArchiveHeader.SetBounds(x, y, w, 20); y += 22;
-            int bottom = sideH - Sidebar.Padding.Bottom;
-            SidebarBottom.SetBounds(x, Math.Max(y + 40, bottom - 56), w, 56); bottom = SidebarBottom.Top - 4;
-            if (_showAutomation) { AutomationPanel.SetBounds(x, Math.Max(y + 20, bottom - 44), w, 44); bottom = AutomationPanel.Top - 4; }
-            ArchiveList.SetBounds(x, y, w, Math.Max(20, bottom - y));
+            if (_layingOutSidebar) return;
+            _layingOutSidebar = true;
+            try
+            {
+            int dpi = DeviceDpiSafe;
+            Func<int, int> px = v => DisplayScale.Pixels(v, dpi);
+            Sidebar.Padding = new Padding(px(10), px(8), px(8), px(8));
+            int w = SidebarArea.ContentWidth;
+            if (SidebarArea.ClientSize.Width <= 0) return;
+            int x = 0, y = 0;
+            int gap = px(8);
+            int collapseSide = Math.Max(px(28), CollapseButton.Font.Height + px(6));
+            int titleH = Math.Max(AppTitle.Font.Height + px(6), collapseSide);
+            AppTitle.SetBounds(x, y, Math.Max(1, w - collapseSide - gap), titleH);
+            CollapseButton.SetBounds(x + w - collapseSide, y + (titleH - collapseSide) / 2, collapseSide, collapseSide);
+            y += titleH + gap;
+            int searchH = Math.Max(px(32), GlobalSearchButton.Font.Height + px(12));
+            GlobalSearchButton.SetBounds(x, y, w, searchH); y += searchH + px(12);
+            int headingH = Math.Max(CurrentHeader.Font.Height, ArchiveHeader.Font.Height) + px(4);
+            CurrentHeader.SetBounds(x, y, w, headingH); y += headingH + px(4);
+            int roomH = Math.Max(CurrentRoomButton.Font.Height * 2,
+                TextRenderer.MeasureText(CurrentRoomButton.Text ?? "", CurrentRoomButton.Font,
+                    new Size(Math.Max(1, w - px(16)), int.MaxValue), TextFormatFlags.WordBreak | TextFormatFlags.NoPrefix).Height) + px(16);
+            CurrentRoomButton.SetBounds(x, y, w, roomH); y += roomH + px(12);
+            ArchiveHeader.SetBounds(x, y, w, headingH); y += headingH + px(4);
+            int footerH = MyName.Font.Height + LinkDot.Font.Height + px(18);
+            int autoH = _showAutomation ? Math.Max(px(36), TextRenderer.MeasureText(AutomationLabel.Text ?? "", AutomationLabel.Font,
+                new Size(Math.Max(1, w - px(12)), int.MaxValue), TextFormatFlags.WordBreak | TextFormatFlags.NoPrefix).Height + px(12)) : 0;
+            int contentH = Math.Max(SidebarArea.ClientSize.Height, y + px(48) + gap + footerH + (autoH > 0 ? autoH + gap : 0));
+            SidebarArea.SetContentHeight(contentH);
+            int bottom = contentH;
+            SidebarBottom.SetBounds(x, bottom - footerH, w, footerH);
+            LayoutSidebarBottom();
+            bottom = SidebarBottom.Top - gap;
+            if (_showAutomation)
+            {
+                AutomationPanel.SetBounds(x, bottom - autoH, w, autoH);
+                bottom = AutomationPanel.Top - gap;
+            }
+            ArchiveList.SetBounds(x, y, w, Math.Max(0, bottom - y));
+            }
+            finally { _layingOutSidebar = false; }
         }
 
         private void LayoutSidebarBottom()
         {
             int w = SidebarBottom.ClientSize.Width;
-            SidebarSettings.Location = new Point(w - 34, 12);
-            LinkDot.SetBounds(0, 30, 18, 20);
-            MyName.SetBounds(0, 6, w - 40, 22);
+            int gap = DisplayScale.Pixels(6, DeviceDpiSafe);
+            MyName.SetBounds(0, gap, w, MyName.Font.Height + gap);
+            LinkDot.SetBounds(0, MyName.Bottom + gap, w, LinkDot.Font.Height);
         }
 
         public void ApplyLayoutFromSetting()
@@ -518,12 +559,16 @@ namespace NyangTalk.App
             _layout = kind;
             SidebarCollapsed = kind == LayoutKind.Sidebar && collapsed;
             bool showSidebar = kind == LayoutKind.Sidebar && !SidebarCollapsed;
-            Sidebar.Visible = showSidebar; SidebarSplitter.Visible = showSidebar;
+            Sidebar.Width = DisplayScale.Pixels(_prefs.Settings.GetInt("screen.sidebarWidth"), DeviceDpiSafe);
+            SidebarSplitter.MinSize = DisplayScale.Pixels(200, DeviceDpiSafe);
+            SidebarSplitter.MinExtra = DisplayScale.Pixels(360, DeviceDpiSafe);
+            SidebarSplitter.Width = DisplayScale.Pixels(4, DeviceDpiSafe);
             if (SidebarOverlay) CloseSidebarOverlay();
+            Sidebar.Visible = showSidebar; SidebarSplitter.Visible = showSidebar;
             // narrow windows can still open the sidebar: over the chat (2026-11-20 user request)
             ExpandButton.Visible = kind == LayoutKind.Single || SidebarCollapsed;
             ExpandButton.Location = new Point(4, Math.Max(4, (Header.Height - ExpandButton.Height) / 2)); ExpandButton.BringToFront();
-            MinimumSize = kind == LayoutKind.Sidebar ? DisplayScale.Size(720, 520, DeviceDpiSafe) : DisplayScale.Size(300, 360, DeviceDpiSafe);
+            MinimumSize = kind == LayoutKind.Sidebar && !collapsed ? SizeFromClientSize(DisplayScale.Size(720, 520, DeviceDpiSafe)) : DisplayScale.Size(300, 360, DeviceDpiSafe);
             if (changed) CloseTransientPopups();
             PerformLayout();
             LayoutSidebar();
@@ -560,7 +605,9 @@ namespace NyangTalk.App
         {
             SidebarOverlay = true;
             Sidebar.Dock = DockStyle.None;
-            Sidebar.SetBounds(0, 0, Math.Min(_prefs.Settings.GetInt("screen.sidebarWidth"), Math.Max(200, ClientSize.Width - 40)), ClientSize.Height);
+            Sidebar.SetBounds(0, 0, Math.Min(DisplayScale.Pixels(_prefs.Settings.GetInt("screen.sidebarWidth"), DeviceDpiSafe),
+                Math.Max(DisplayScale.Pixels(200, DeviceDpiSafe), ClientSize.Width - DisplayScale.Pixels(40, DeviceDpiSafe))), ClientSize.Height);
+            LayoutSidebar();
             Sidebar.Visible = true;
             Sidebar.BringToFront();
             ExpandButton.Visible = false;
@@ -573,6 +620,7 @@ namespace NyangTalk.App
             SidebarOverlay = false;
             Sidebar.Visible = false;
             Sidebar.Dock = DockStyle.Left;
+            Sidebar.SendToBack();
             ExpandButton.Visible = _layout == LayoutKind.Single || SidebarCollapsed;
             ExpandButton.BringToFront();
         }
@@ -672,6 +720,8 @@ namespace NyangTalk.App
             ForeColor = RenderStyle.C(th.Text);
             Header.BackColor = s.Preset == DesignPreset.Wire ? RenderStyle.C(th.Window) : RenderStyle.C(th.Panel);
             Sidebar.BackColor = RenderStyle.C(th.Panel);
+            var sidebarPalette = Palette.From(th); sidebarPalette.Back = sidebarPalette.Panel;
+            SidebarArea.Pal = sidebarPalette;
             SidebarSplitter.BackColor = RenderStyle.C(th.Panel);   // the width handle blends with the sidebar and header (no seam)
             ArchiveList.Pal = Palette.From(th); ArchiveList.Font = Font;
             NoticeBand.BackColor = RenderStyle.C(th.Soft); NoticeLabel.ForeColor = RenderStyle.C(th.Text);
@@ -688,7 +738,7 @@ namespace NyangTalk.App
             SendButton.FlatAppearance.BorderSize = s.Preset == DesignPreset.Wire ? 1 : 0;
             SendButton.Round = s.Preset == DesignPreset.Mobile;
             SendButton.Text = s.Preset == DesignPreset.Mobile ? "" : L("send.button");
-            foreach (var ib in new[] { SearchButton, SettingsButton, RoomsButton, MoreButton, ReconnectButton, NoticeClose, SearchPrev, SearchNext, SearchCloseButton, CollapseButton, ExpandButton, SidebarSettings })
+            foreach (var ib in new[] { SearchButton, SettingsButton, RoomsButton, MoreButton, ReconnectButton, NoticeClose, SearchPrev, SearchNext, SearchCloseButton, CollapseButton, ExpandButton })
                 ib.IconColor = RenderStyle.C(th.Text);
             NoticeClose.IconColor = RenderStyle.C(th.MidText);
             foreach (var l in new Control[] { RoomSub, HintLabel, CounterLabel, StorageLabel, CurrentHeader, ArchiveHeader, AutomationLabel }) l.ForeColor = RenderStyle.C(th.SubText);
@@ -718,7 +768,7 @@ namespace NyangTalk.App
             StorageLabel.Text = L("send.storage");
             Text = string.Format(L("app.title"), AppVersion.Text);
             if (_host.Demo != null) Text += " · " + L("demo.title");
-            LayoutHeader(); LayoutComposer();
+            LayoutHeader(); LayoutComposer(); LayoutSidebar();
             People.ApplyStyle(Palette.From(th), Font);
             FirstRunPanel.BackColor = RenderStyle.C(th.Window);
             FirstRunTitle.BackColor = FirstRunPanel.BackColor; FirstRunTitle.ForeColor = RenderStyle.C(th.Text); FirstRunTitle.Font = Fonts.Create(s.FontFamily, Math.Max(11f, s.FontSize + 1), FontStyle.Bold);
@@ -778,13 +828,12 @@ namespace NyangTalk.App
             Tips.Set(CollapseButton, L("tip.sidebar.collapse"));
             Tips.Set(ExpandButton, L("tip.sidebar.expand"));
             Tips.Set(GlobalSearchButton, L("tip.sidebar.globalSearch"));
-            Tips.Set(SidebarSettings, L("tip.header.settings"));
             Tips.Set(NoticeClose, L("tip.notice.close"));
             Tips.Set(SearchPrev, L("tip.search.prev"));
             Tips.Set(SearchNext, L("tip.search.next"));
             Tips.Set(SearchCloseButton, L("tip.search.close"));
             Tips.Set(SendButton, L("tip.send"));
-            foreach (var b in new Control[] { RoomsButton, SearchButton, ReconnectButton, SettingsButton, MoreButton, CollapseButton, ExpandButton, SidebarSettings, NoticeClose, SearchPrev, SearchNext, SearchCloseButton })
+            foreach (var b in new Control[] { RoomsButton, SearchButton, ReconnectButton, SettingsButton, MoreButton, CollapseButton, ExpandButton, NoticeClose, SearchPrev, SearchNext, SearchCloseButton })
                 b.AccessibleName = Tips.Get(b);
             Tips.Set(RoomSub, RoomSub.Text ?? "");
         }
@@ -806,6 +855,11 @@ namespace NyangTalk.App
                 px = saved == null ? WindowSizes.Pixels("default", dpi) : new[] { WindowSizes.Scale(saved[0], dpi), WindowSizes.Scale(saved[1], dpi) };
             }
             if (WindowState != FormWindowState.Normal) WindowState = FormWindowState.Normal;
+            if (_prefs.Settings.Get("screen.layout") == "sidebar" && !_prefs.Settings.GetBool("screen.sidebarCollapsed"))
+            {
+                var minimum = SizeFromClientSize(DisplayScale.Size(720, 520, dpi));
+                px[0] = Math.Max(px[0], minimum.Width); px[1] = Math.Max(px[1], minimum.Height);
+            }
             _applyingSize = true;
             try { Size = new Size(px[0], px[1]); }
             finally { _applyingSize = false; }

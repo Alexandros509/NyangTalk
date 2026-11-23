@@ -1,6 +1,6 @@
 # NyangTalk
 
-Steam 게임 Bongo Cat의 로비 대화를 별도 창에서 읽고 보내는 Windows 메신저입니다. 첫 공개 버전은 **0.1.0**입니다.
+Steam 게임 Bongo Cat의 로비 대화를 별도 창에서 읽고 보내는 Windows 메신저입니다. 현재 버전은 **0.1.1**입니다.
 
 [최신 버전 다운로드](https://github.com/Alexandros509/NyangTalk/releases/latest)
 
@@ -17,13 +17,14 @@ Steam 게임 Bongo Cat의 로비 대화를 별도 창에서 읽고 보내는 Win
 아래 화면은 별도 데모 데이터로 생성했습니다. 실제 게임에 전송하지 않습니다.
 
 ![밝은 대화 창](design-system/images/main-light.png)
+![사이드바 배치](design-system/images/sidebar-default.png)
 ![어두운 대화 창](design-system/images/main-dark.png)
 ![화면 설정](design-system/images/settings-screen.png)
 ![대화 설정](design-system/images/settings-chat.png)
 
 ## 설치와 실행
 
-1. 릴리스에서 **NyangTalk-0.1.0.exe**를 내려받습니다.
+1. 릴리스에서 **NyangTalk-0.1.1.exe**를 내려받습니다.
 2. 실행 후 언어와 게임 폴더를 선택합니다.
 3. 게임을 종료한 상태에서 연결 구성요소를 설치하고 게임을 다시 실행합니다.
 4. 게임 로비에 들어가면 대화 창에서 연결 상태를 확인할 수 있습니다.

@@ -2,14 +2,14 @@
 
 `build.ps1` 실행 때 자동으로 생성된다. 손으로 고치지 않는다.
 
-생성: 2026-11-23 22:54 · 통과 216 · 실패 0
+생성: 2026-11-23 23:22 · 통과 219 · 실패 0
 
 | 명세 항목 | 검사 |
 |---|---|
 | 01-2.1 | PASS StructureTests.ApplicationLayerDirection<br>PASS StructureTests.BoundedContextsExist<br>PASS StructureTests.DomainIsPure |
 | 01-2.2 | PASS VersionTests.SemVerPrecedenceExample |
 | 01-3 | PASS StructureTests.ForbiddenFeaturesAbsent |
-| 01-3.2 | PASS DistributionTests.ShippedFilesHaveNoGameContent |
+| 01-3.2 | PASS DistributionTests.DistributionAssetsAreListedAndGameAssembliesAreExcluded |
 | 01-3.7 | PASS ExchangeTests.UnsentMessagesSurviveRestart |
 | 01-6 | PASS PreferenceTests.TranslationsComplete<br>PASS UiTests.RenderAllScreensToPng |
 | 10-11.1 | PASS GameCheckTests.RealGameNoModsZeroProblems |
@@ -49,7 +49,7 @@
 | 30-7 | PASS StyleReferenceTests.BubbleWidthMatchesRenderedGlyphsWithoutHiddenRightPadding<br>PASS StyleReferenceTests.OwnBubblesKeepTheirBaselineWithTimeAndAvatar |
 | 30-7.2.1 | PASS UiTests.AllCombinationsLayoutAndContrast<br>PASS UiTests.RenderAllScreensToPng |
 | 30-7.2.2 | PASS UiTests.PresetAndShapeIndependent |
-| 30-7.2.3 | PASS DistributionTests.ShippedFilesHaveNoGameContent |
+| 30-7.2.3 | PASS DistributionTests.DistributionAssetsAreListedAndGameAssembliesAreExcluded |
 | 30-7.2.4 | PASS UiTests.PresetAndShapeIndependent |
 | 30-8.1 | PASS UiTests.LayoutSwitchKeepsState |
 | 30-8.2 | PASS PreferenceTests.LayoutHysteresis<br>PASS UiTests.AutoLayoutByWidth |
@@ -120,7 +120,7 @@
 | 70-3.4 | PASS AppearanceTests.PortraitCachePolicy |
 | 70-3.5 | PASS AppearanceTests.PortraitCachePolicy |
 | 70-3.6 | PASS UiTests.AllCombinationsLayoutAndContrast<br>PASS UiTests.DependentSettingsDisabled |
-| 70-3.7 | PASS DistributionTests.ShippedFilesHaveNoGameContent |
+| 70-3.7 | PASS DistributionTests.DistributionAssetsAreListedAndGameAssembliesAreExcluded |
 | 80-0 | PASS PanelAndLinkTests.AutomationNeedsNoPopUpAndKeepsTheNotice |
 | 80-1.2.1 | PASS ChestAutomatonTests.OpensOnlyChosenReadyAffordableAfterDelay<br>PASS FilterAndPictureAppTests.PermitNeedsSwitchConsentAndConnection |
 | 80-1.2.2 | PASS ChestAutomatonTests.OpensOnlyChosenReadyAffordableAfterDelay |
@@ -177,8 +177,9 @@
 | 95-2.7 | PASS GroupDTests.SavedRoomsGroupUngroupSearchExportAndRetention |
 | 95-2.8 | PASS GroupDTests.ParticipantsShowLastListInGreyWhenDisconnectedAndLiveWhenReconnected |
 | 95-2.9 | PASS GroupDTests.FirstRunAsksLanguageInWindowWithKoreanPreselectedAndOnceOnly |
-| DPI | PASS DpiStartupTests.DisplayConfigurationWriteFailureStopsBeforeUiStartup<br>PASS DpiStartupTests.MissingOrBrokenDisplayConfigurationIsRepairedWithoutTouchingPreferences<br>PASS DpiStartupTests.UiDomainUsesItsOwnPerMonitorConfiguration<br>PASS StyleReferenceTests.DemoClearlyIdentifiesThatItDoesNotSendToTheGame |
+| DPI | PASS DpiStartupTests.DisplayConfigurationWriteFailureStopsBeforeUiStartup<br>PASS DpiStartupTests.MissingOrBrokenDisplayConfigurationIsRepairedWithoutTouchingPreferences<br>PASS DpiStartupTests.UiDomainUsesItsOwnPerMonitorConfiguration<br>PASS SidebarLayoutTests.DefaultSidebarRemainsExpandedAfterApplyingTheWindowPreset<br>PASS SidebarLayoutTests.ShortOverlayScrollsInsteadOfCrushingItsContents<br>PASS SidebarLayoutTests.SidebarSectionsAndHeaderSurviveFontChanges<br>PASS StyleReferenceTests.DemoClearlyIdentifiesThatItDoesNotSendToTheGame |
 | LGPL | PASS DistributionTests.UnstrippedLibrariesAndLgplSourcesShipped |
+| sidebar | PASS SidebarLayoutTests.DefaultSidebarRemainsExpandedAfterApplyingTheWindowPreset<br>PASS SidebarLayoutTests.ShortOverlayScrollsInsteadOfCrushingItsContents<br>PASS SidebarLayoutTests.SidebarSectionsAndHeaderSurviveFontChanges |
 | 검토 | PASS ModParkingTests.ParkingRefusesWhenUnsureAndKeepsWhatItCannotRestore |
 | 요청-1 | PASS PanelAndLinkTests.ParticipantsOpenAsASidePanel |
 | 요청-2 | PASS PanelAndLinkTests.PillFollowsTheThemeAndLooksPressable |
@@ -192,7 +193,7 @@
 
 ## 측정값 (이 개발 PC에서 측정, 다른 PC 결과 아님)
 
-- 게임 구조 검사(실제 게임 파일 읽기 전용): 어셈블리 69개, 타입 10735개, 332 ms (목표 3,000 ms), 혼용 문제 0건
+- 게임 구조 검사(실제 게임 파일 읽기 전용): 어셈블리 69개, 타입 10735개, 280 ms (목표 3,000 ms), 혼용 문제 0건
 - 기본 밝게 원본 유지: subtext/window 대비 2.29:1 (4.5 기준 예외)
 - 기본 밝게 원본 유지: subtext/panel 대비 3.65:1 (4.5 기준 예외)
 - 기본 밝게 원본 유지: notice/pill 대비 3.31:1 (4.5 기준 예외)
@@ -202,4 +203,4 @@
 - 3,000개 기록 읽기+묶기: 7 ms (목표 1,500 ms, 화면 그리기 제외), 관리 힙 증가 약 2 MB
 - 내 말풍선 테스트(11pt): 실제 글자 폭 39px, 보이는 좌/우 여백 9/9px
 - 배치 계산 검사 조합 수: 1296 (너비 2 × 테마 6 × 채팅 모양 3 × 프리셋 4 × 색 위치 3 × 내 캐릭터 3)
-- 3,000개 표시(기록 읽기·묶기·배치·첫 그리기): 593 ms (목표 1,500 ms). 검사 프로세스 작업 집합 151 MB, 개인 바이트 106 MB — 검사 실행기 전체 값이라 앱 단독 값이 아님
+- 3,000개 표시(기록 읽기·묶기·배치·첫 그리기): 612 ms (목표 1,500 ms). 검사 프로세스 작업 집합 186 MB, 개인 바이트 139 MB — 검사 실행기 전체 값이라 앱 단독 값이 아님
