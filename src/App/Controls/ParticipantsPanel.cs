@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
+using NyangTalk.App.Platform;
 using NyangTalk.Domain.Lobby;
 
 namespace NyangTalk.App.Controls
@@ -19,9 +20,11 @@ namespace NyangTalk.App.Controls
         public readonly Label Hint = new Label();
         public readonly Label Note = new Label();
         public readonly Panel Line = new Panel();
+        public readonly ScrollArea Body = new ScrollArea();
         private List<Participant> _people = new List<Participant>();
         private Font _titleFont;
         private Palette _pal;
+        private bool _layingOut;
         public bool Stale { get; private set; }
         public event Action<Participant, Point> PersonMenu;
 
@@ -29,22 +32,63 @@ namespace NyangTalk.App.Controls
         {
             Width = PanelWidth;
             Visible = false;
-            Padding = new Padding(1, 0, 0, 0);
-            Title.AutoSize = false; Title.Height = 36; Title.TextAlign = ContentAlignment.MiddleLeft; Title.Padding = new Padding(10, 0, 0, 0); Title.Dock = DockStyle.Top;
+            Title.AutoSize = false; Title.TextAlign = ContentAlignment.MiddleLeft;
             CloseButton.Size = new Size(32, 30);
-            Hint.AutoSize = false; Hint.Dock = DockStyle.Bottom; Hint.Padding = new Padding(10, 6, 8, 8); Hint.Height = 52;
-            Note.AutoSize = false; Note.Dock = DockStyle.Top; Note.Padding = new Padding(10, 2, 8, 2); Note.Visible = false; Note.Height = 22;
-            List.Dock = DockStyle.Fill;
-            Line.Dock = DockStyle.Left; Line.Width = 1;
+            Hint.AutoSize = false;
+            Note.AutoSize = false; Note.Visible = false;
+            Title.UseMnemonic = Hint.UseMnemonic = Note.UseMnemonic = false;
             List.MouseUp += (s, e) => Open(e.Location);
             List.KeyDown += (s, e) => { if (e.KeyCode == Keys.Enter || e.KeyCode == Keys.Apps) { Open(new Point(8, (List.SelectedIndex + 1) * List.ItemHeight - List.TopPixel)); e.Handled = true; } };
-            Controls.Add(List); Controls.Add(Note); Controls.Add(Hint); Controls.Add(Title); Controls.Add(Line);
-            Controls.Add(CloseButton);
-            CloseButton.BringToFront();
-            Resize += (s, e) => CloseButton.Location = new Point(Width - CloseButton.Width - 4, 3);
+            Body.Content.Controls.AddRange(new Control[] { List, Note, Hint, Title, CloseButton });
+            Controls.Add(Body); Controls.Add(Line);
+            Resize += (s, e) => LayoutContents();
+            Body.Resize += (s, e) => LayoutContents();
+            foreach (var label in new[] { Title, Note, Hint }) label.TextChanged += (s, e) => LayoutContents();
+            Note.VisibleChanged += (s, e) => LayoutContents();
+            CloseButton.Enter += (s, e) => Body.EnsureVisible(CloseButton);
+            List.Enter += (s, e) => Body.EnsureVisible(List);
         }
 
         public IList<Participant> People { get { return _people; } }
+
+        public static int ParagraphHeight(Label label, int width)
+        {
+            return Math.Max(label.Font.Height, TextRenderer.MeasureText(label.Text ?? "", label.Font,
+                new Size(Math.Max(1, width), int.MaxValue), TextFormatFlags.WordBreak | TextFormatFlags.NoPrefix).Height);
+        }
+
+        private void LayoutContents()
+        {
+            if (_layingOut) return;
+            _layingOut = true;
+            try
+            {
+                int dpi = DisplayScale.Dpi(this);
+                Func<int, int> px = value => DisplayScale.Pixels(value, dpi);
+                int line = Math.Max(1, px(1));
+                Line.SetBounds(0, 0, line, ClientSize.Height);
+                Body.SetBounds(line, 0, Math.Max(0, ClientSize.Width - line), ClientSize.Height);
+                int margin = px(10), gap = px(8);
+                int width = Math.Max(1, Body.ContentWidth - margin * 2);
+                int closeSide = Math.Max(px(30), CloseButton.Font.Height + px(8));
+                int titleWidth = Math.Max(1, width - closeSide - gap);
+                int headerHeight = Math.Max(closeSide, ParagraphHeight(Title, titleWidth));
+                Title.SetBounds(margin, gap, titleWidth, headerHeight);
+                CloseButton.SetBounds(margin + width - closeSide, gap + (headerHeight - closeSide) / 2, closeSide, closeSide);
+                int y = Title.Bottom + gap;
+                if (Note.Visible)
+                {
+                    Note.SetBounds(margin, y, width, ParagraphHeight(Note, width) + px(4));
+                    y = Note.Bottom + gap;
+                }
+                int hintHeight = ParagraphHeight(Hint, width) + px(4);
+                int contentHeight = Math.Max(Body.ClientSize.Height, y + Math.Max(px(48), List.ItemHeight * 2) + gap + hintHeight + margin);
+                Body.SetContentHeight(contentHeight);
+                Hint.SetBounds(margin, contentHeight - margin - hintHeight, width, hintHeight);
+                List.SetBounds(margin, y, width, Math.Max(0, Hint.Top - gap - y));
+            }
+            finally { _layingOut = false; }
+        }
 
         private void Open(Point at)
         {
@@ -72,12 +116,14 @@ namespace NyangTalk.App.Controls
                 Note.ForeColor = stale ? _pal.Sub : _pal.Warning;
                 List.ForeColor = stale ? _pal.Sub : _pal.Text;
             }
+            LayoutContents();
         }
 
         public void ApplyStyle(Palette pal, Font font)
         {
             _pal = pal;
             BackColor = pal.Panel; Font = font;
+            Body.Pal = new Palette { Back = pal.Panel, Panel = pal.Panel, Sub = pal.Sub };
             Title.BackColor = pal.Panel; Title.ForeColor = Stale ? pal.Sub : pal.Text;
             // WinForms keeps the old Font object when the new one is equal in value, so only a real change replaces (and frees) it
             var bold = new Font(font, FontStyle.Bold);
@@ -88,6 +134,7 @@ namespace NyangTalk.App.Controls
             Line.BackColor = pal.Border;
             List.Pal = pal; List.Font = font; List.Muted = Stale; List.ForeColor = Stale ? pal.Sub : pal.Text;
             CloseButton.IconColor = pal.Text;
+            LayoutContents();
         }
     }
 }

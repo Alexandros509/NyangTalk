@@ -647,17 +647,18 @@ namespace NyangTalk.App
         public void PlaceParticipants()
         {
             if (!People.Visible) { People.Dock = DockStyle.Right; return; }
-            if (Main.ClientSize.Width < ParticipantsDockMin)
+            int panelWidth = DisplayScale.Pixels(ParticipantsPanel.PanelWidth, DeviceDpiSafe);
+            if (DisplayScale.Logical(Main.ClientSize.Width, DeviceDpiSafe) < ParticipantsDockMin)
             {
                 People.Dock = DockStyle.None;
-                int top = Header.Bottom;
-                People.SetBounds(Math.Max(0, Main.ClientSize.Width - ParticipantsPanel.PanelWidth), top, Math.Min(ParticipantsPanel.PanelWidth, Main.ClientSize.Width), Main.ClientSize.Height - top);
+                int top = Math.Max(Header.Bottom, Math.Max(NoticeBand.Visible ? NoticeBand.Bottom : 0, SearchBar.Visible ? SearchBar.Bottom : 0));
+                People.SetBounds(Math.Max(0, Main.ClientSize.Width - panelWidth), top, Math.Min(panelWidth, Main.ClientSize.Width), Math.Max(0, Main.ClientSize.Height - top));
                 People.BringToFront();
             }
             else
             {
                 People.Dock = DockStyle.Right;
-                People.Width = ParticipantsPanel.PanelWidth;
+                People.Width = panelWidth;
                 Main.Controls.SetChildIndex(People, Main.Controls.GetChildIndex(ComposerArea) + 1);
             }
         }
