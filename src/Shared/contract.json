@@ -1,6 +1,6 @@
 {
   "contract_version": 3,
-  "note": "Game members used by the NyangTalk game component. Read from game metadata on 2026-11-19 (Steam buildid 26754239, Unity 6000.2.8f1). Facts about the game, not code from any other project.",
+  "note": "Game members used for interoperability by the NyangTalk game component. Read from game metadata on 2026-11-19 (Steam buildid 26754239, Unity 6000.2.8f1).",
   "verified_fingerprints": [],
   "entries": [
     {

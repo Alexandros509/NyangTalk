@@ -179,6 +179,8 @@ namespace NyangTalk.App
             w.MainWindowDpi = () => form.DeviceDpiSafe;
             w.SidebarLayout = () => form.CurrentLayout == NyangTalk.Domain.Preferences.LayoutKind.Sidebar;
             w.NotifyPreview = form.PreviewNotification;
+            w.PreviewOpacity = v => form.ApplyOpacity(v);
+            w.EndOpacityPreview = () => { if (!form.IsDisposed && !form.Disposing) form.ApplyOpacity(); };
             w.EditMyAlias = () =>
             {
                 var me = host.Chat.PeopleList().FirstOrDefault(p => p.IsMe);

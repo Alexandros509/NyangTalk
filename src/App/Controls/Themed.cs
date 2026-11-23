@@ -504,16 +504,55 @@ namespace NyangTalk.App.Controls
         private int _index, _hover = -1;
         public event Action<int> SelectedChanged;
         public const int ItemHeight = 38;
+        public readonly ThemedScrollBar Bar = new ThemedScrollBar();
 
-        public CategoryList() { AccessibleRole = AccessibleRole.List; }
+        public CategoryList()
+        {
+            AccessibleRole = AccessibleRole.List;
+            Bar.Dock = DockStyle.Right; Controls.Add(Bar);
+            Bar.ValueChanged += (s, e) => Invalidate();
+        }
 
         public int SelectedIndex
         {
             get { return _index; }
-            set { if (value < 0 || value >= Items.Count || value == _index) return; _index = value; AccessibleDescription = Items[value]; Invalidate(); var h = SelectedChanged; if (h != null) h(value); }
+            set { if (value < 0 || value >= Items.Count || value == _index) return; _index = value; AccessibleDescription = Items[value]; RefreshItems(); EnsureSelected(); var h = SelectedChanged; if (h != null) h(value); }
         }
 
-        public Rectangle ItemRect(int i) { return new Rectangle(6, 8 + i * ItemHeight, Width - 12, ItemHeight - 4); }
+        private int RowHeight(int i)
+        {
+            using (var bold = new Font(Font, FontStyle.Bold))
+                return Math.Max(NyangTalk.App.Platform.DisplayScale.Pixels(ItemHeight, DeviceDpi),
+                    TextRenderer.MeasureText(Items[i], bold, new Size(Math.Max(20, Width - (Bar.Visible ? Bar.Width : 0) - 26), int.MaxValue), TextFormatFlags.WordBreak | TextFormatFlags.NoPrefix).Height + 12);
+        }
+        public Rectangle ItemRect(int i)
+        {
+            int y = 8 - Bar.Value;
+            for (int n = 0; n < i; n++) y += RowHeight(n);
+            return new Rectangle(6, y, Math.Max(1, Width - (Bar.Visible ? Bar.Width : 0) - 12), RowHeight(i) - 4);
+        }
+        public void RefreshItems()
+        {
+            if (Bar == null) return;
+            int total = 16;
+            for (int i = 0; i < Items.Count; i++) total += RowHeight(i);
+            Bar.Visible = total > ClientSize.Height;
+            if (Bar.Visible) { total = 16; for (int i = 0; i < Items.Count; i++) total += RowHeight(i); }
+            Bar.Minimum = 0; Bar.Maximum = Math.Max(0, total - 1); Bar.LargeChange = Math.Max(1, ClientSize.Height); Bar.SmallChange = Font.Height + 12;
+            if (!Bar.Visible) Bar.Value = 0;
+            if (!ReferenceEquals(Bar.Pal, Pal)) Bar.Pal = Pal;
+            Invalidate();
+        }
+        private void EnsureSelected()
+        {
+            if (Items.Count == 0) return;
+            var r = ItemRect(_index);
+            if (r.Top < 0) Bar.Value += r.Top;
+            else if (r.Bottom > ClientSize.Height) Bar.Value += r.Bottom - ClientSize.Height;
+        }
+        protected override void OnResize(EventArgs e) { base.OnResize(e); RefreshItems(); }
+        protected override void OnFontChanged(EventArgs e) { base.OnFontChanged(e); RefreshItems(); }
+        protected override void OnMouseWheel(MouseEventArgs e) { Bar.Value -= Math.Sign(e.Delta) * Bar.SmallChange * 2; base.OnMouseWheel(e); }
 
         private int At(Point p) { for (int i = 0; i < Items.Count; i++) if (ItemRect(i).Contains(p)) return i; return -1; }
 

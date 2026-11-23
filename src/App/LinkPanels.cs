@@ -849,6 +849,13 @@ namespace NyangTalk.App
         /// <summary>Status line under an automation switch (90-SPEC 1.4): what the game component reports, never guessed.</summary>
         public string FeatureStatus(string key)
         {
+            if (key == "char.scope" && _host.Prefs.Settings.GetBool("char.show") && _host.Prefs.Settings.Get(key) == "face")
+            {
+                NyangTalk.Domain.Update.SemVersion producer;
+                var current = _host.Chat.Status;
+                if (current != null && NyangTalk.Domain.Update.SemVersion.TryParse(current.ProducerVersion, out producer)
+                    && producer.CompareTo(NyangTalk.Domain.Update.SemVersion.Parse("0.1.1")) < 0) return L("char.faceNeedsComponent");
+            }
             if (key != "auto.chest" && key != "auto.gifts") return null;
             if (!_host.Prefs.Settings.GetBool(key)) return L("auto.status.Off");
             var st = _host.Chat.Status;
@@ -1024,7 +1031,7 @@ namespace NyangTalk.App
             return Payload.Load(typeof(LinkServices).Assembly, Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "payload"), GameLinkVersion);
         }
 
-        public const string GameLinkVersion = "0.1.0";
+        public const string GameLinkVersion = "0.1.1";
 
         public string Describe(InstallResult r)
         {

@@ -107,7 +107,7 @@ namespace NyangTalk.Adapters.Update
         public long Sequence;
         public string MinFromVersion;
         public bool GamePayloadChanged;
-        public string GameComponentVersion = "0.1.0";
+        public string GameComponentVersion = "0.1.1";
         public string GameComponentAccepts = ">=0.1.0 <0.2.0";
         public Dictionary<string, string> Notes = new Dictionary<string, string>();
         public List<string> Revoked = new List<string>();

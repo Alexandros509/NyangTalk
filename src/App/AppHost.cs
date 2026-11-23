@@ -106,6 +106,6 @@ namespace NyangTalk.App
     public static class AppVersion
     {
         /// <summary>Full SemVer shown on screen; file version is MAJOR.MINOR.PATCH.0 (01-OVERVIEW 2.2).</summary>
-        public const string Text = "0.1.2";
+        public const string Text = "0.1.3";
     }
 }

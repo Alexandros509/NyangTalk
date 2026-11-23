@@ -18,7 +18,7 @@ namespace NyangTalk.GameLink
     [BepInPlugin("local.nyangtalk.gamelink", "NyangTalk GameLink", Version)]
     public sealed partial class GameLinkPlugin : BaseUnityPlugin
     {
-        public const string Version = "0.1.0";
+        public const string Version = "0.1.1";
         private ContractRuntime _c;
         private string _dir;
         private float _next;

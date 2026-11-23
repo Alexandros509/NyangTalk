@@ -140,6 +140,9 @@ namespace NyangTalk.Domain.Preferences
             T("tip.notifyPreview", "고른 알림 방식을 한 번 보여 줘요. 실제 안 읽은 수는 바꾸지 않아요.", "Shows the chosen alert once without changing the real unread count.", "選んだ通知を一度表示します。実際の未読数は変えません。");
             T("preview.look", "미리보기", "Preview", "プレビュー");
             T("preview.emote", "미리보기: 예시 이모티콘 10개를 지금 방식으로 묶은 결과", "Preview: ten sample emotes grouped the current way", "プレビュー: 例のエモート10個を今の方法でまとめた結果");
+            T("preview.messages", "미리보기: 야옹 표시와 시각", "Preview: meow visibility and clock format", "プレビュー: ニャーの表示と時刻");
+            T("why.char.compactSize", "컴팩트 표시에서는 작은 크기로 고정돼요. 컴팩트 표시를 끄고 말풍선이나 카드 모양을 고르면 크기를 바꿀 수 있어요.", "Compact display uses a fixed small size. Turn off compact display and choose bubbles or cards to change the size.", "コンパクト表示では小さいサイズに固定されます。コンパクトをオフにして吹き出しかカードを選ぶと変更できます。");
+            T("char.faceNeedsComponent", "게임의 얼굴만 표시하려면 연결 구성요소 0.1.1이 필요해요. 게임을 종료한 뒤 연결에서 다시 설치해 주세요.", "Face-only game portraits need connector 0.1.1. Close the game and reinstall from Connection.", "ゲームの顔のみの表示には接続コンポーネント0.1.1が必要です。ゲームを終了して接続から再インストールしてください。");
             T("preview.people", "미리보기: 별명 표시와 사람별 색", "Preview: nicknames and person colours", "プレビュー: ニックネームと人ごとの色");
             T("preview.char", "미리보기: 보통 대화, 같은 사람의 연속 대화, 내 대화", "Preview: normal, consecutive from one person, mine", "プレビュー: 通常、同じ人の連続、自分の発言");
             T("preview.charCompact", "미리보기: 컴팩트 모양", "Preview: compact style", "プレビュー: コンパクト");

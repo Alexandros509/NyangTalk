@@ -62,6 +62,8 @@ namespace NyangTalk.App
         public Func<string, string, bool> BeforeChange = (k, v) => true;   // e.g. automation consent
         /// <summary>Opacity while the slider moves (90-SPEC 1.2), before it is saved.</summary>
         public static Action<int> OpacityPreview;
+        public Action<int> PreviewOpacity;
+        public Action EndOpacityPreview;
         /// <summary>Whole pages built elsewhere (connection, automation, updates); false when it does not build that category.</summary>
         public Func<string, SettingsPage, bool> PageBuilder = (c, p) => false;
         /// <summary>One status line under a setting (automation: "꺼짐", "상자 준비를 기다리는 중", …); null for none.</summary>
@@ -114,6 +116,7 @@ namespace NyangTalk.App
             prefs.SaveFailed += OnSaveFailed;
             FormClosed += (s, e) =>
             {
+                if (EndOpacityPreview != null) EndOpacityPreview();
                 prefs.Settings.Changed -= OnSettingChanged;
                 prefs.SaveFailed -= OnSaveFailed;
                 System.Windows.Forms.Application.RemoveMessageFilter(this);
@@ -157,7 +160,7 @@ namespace NyangTalk.App
             _cats.Items.Clear();
             foreach (var c in Categories) _cats.Items.Add(L("settings.cat." + c));
             _cats.AccessibleName = L("menu.settings");
-            _cats.Invalidate();
+            _cats.RefreshItems();
         }
 
         private void LayoutTop()
@@ -204,6 +207,8 @@ namespace NyangTalk.App
             _banner.BackColor = _pal.Panel; _bannerText.BackColor = _pal.Panel; _bannerText.ForeColor = _pal.Warning;
             _pal.StyleButton(_reload);
             _cats.Pal = _pal;
+            _cats.Width = NyangTalk.App.Platform.DisplayScale.Pixels(172, NyangTalk.App.Platform.DisplayScale.Dpi(this));
+            _cats.RefreshItems();
             _area.Pal = _pal;
             if (_page != null) _page.Recolor(_pal);
             if (IsHandleCreated) TitleBar.Apply(Dwm, Handle, style.Theme, style.Theme.Border);
@@ -268,6 +273,7 @@ namespace NyangTalk.App
                     p.Group("chat", "group.emote");
                     p.Preview("preview.emote", 230, v => Previews.Emotes(this, v));
                     p.Group("chat", "group.messages");
+                    p.Preview("preview.messages", 210, v => Previews.Messages(this, v));
                     p.Group("chat", "group.notify");
                     var result = p.Note("", false);
                     p.Buttons(p.Button(L("settings.notifyPreview"), () => { result.Text = NotifyPreview == null ? "" : NotifyPreview(_prefs.Settings.Get("notify.mode")); p.Relayout(); }, "tip.notifyPreview"));
@@ -359,6 +365,9 @@ namespace NyangTalk.App
             _page.Enable("people.colorPlacement", s.Get("people.colorMode") != "none");
             bool cats = s.GetBool("char.show");
             foreach (var k in new[] { "char.size", "char.compact", "char.shape", "char.scope", "char.continuation", "char.mine" }) _page.Enable(k, cats);
+            bool compact = s.Get("screen.chatShape") == "compact";
+            _page.Enable("char.size", cats && !compact && !s.GetBool("char.compact"));
+            _page.Enable("char.compact", cats && !compact);
             _page.Enable("char.minePosition", cats && s.Get("char.mine") == "show");
             bool auto = s.GetBool("auto.chest") || s.GetBool("auto.gifts");
             foreach (var k in new[] { "auto.chestTypes", "auto.chestDelay", "auto.chestMaxPerHour" }) _page.Enable(k, auto);
@@ -549,9 +558,16 @@ namespace NyangTalk.App
         {
             var title = NewLabel(L(titleKey), "sub");
             var view = new ChatView { AccessibleName = L(titleKey), TabStop = false, ScrollBarVisible = false };
+            Previews.Initialize(view, _form);
             _blocks.Add((y, w) => { title.SetBounds(Margin, y + 4, w, TextHeight(title, w) + 2); return title.Height + 6; });
-            // as tall as the sample conversation at this width, so no message is cut (height is only the upper limit)
-            Custom(view, w => { if (view.Width != w) view.Width = w; return Math.Max(60, Math.Min(Math.Max(height, 600), view.TotalHeight + 2)); });
+            if (titleKey == "preview.look")
+            {
+                var header = new Previews.Header { AccessibleName = L(titleKey) };
+                Custom(header, w => { header.Width = w; header.RefreshStyle(_form); return header.Height; });
+                _previews.Add(() => header.RefreshStyle(_form));
+            }
+            // The containing settings page scrolls; every sample row remains visible even with large fonts.
+            Custom(view, w => { if (view.Width != w) view.Width = w; return Math.Max(60, view.TotalHeight + 2); });
             Action refresh = () => fill(view);
             _previews.Add(refresh);
             refresh();
@@ -610,8 +626,9 @@ namespace NyangTalk.App
                     var sl = Add(new ThemedSlider { Minimum = d.Min.Value, Maximum = d.Max.Value, Step = d.Step, AccessibleName = label });
                     sl.Value = S.GetInt(key);
                     row.Value = NewLabel(sl.Value + "%", "label");
-                    sl.Sliding += v => { row.Value.Text = v + "%"; var h = SettingsForm.OpacityPreview; if (h != null) h(v); };   // shown while dragging
-                    sl.Committed += v => S.Set(key, v);                                                                       // saved on release
+                    sl.Sliding += v => { row.Value.Text = v + "%"; var h = _form.PreviewOpacity ?? SettingsForm.OpacityPreview; if (h != null) h(v); };
+                    sl.Committed += v => { S.Set(key, v); if (_form.EndOpacityPreview != null) _form.EndOpacityPreview(); };
+                    sl.Disposed += (s, e) => { if (_form.EndOpacityPreview != null) _form.EndOpacityPreview(); };
                     editor = sl;
                 }
                 else if (d.Min.HasValue)
@@ -642,6 +659,7 @@ namespace NyangTalk.App
                     var status = _form.StatusLine(key);
                     if (status != null) return status;
                     // a greyed item says why it is off (90-SPEC 1.4: disabled, not hidden)
+                    if (!row.Editor.Enabled && S.GetBool("char.show") && (key == "char.size" || key == "char.compact")) return L("why.char.compactSize");
                     if (!row.Editor.Enabled && Strings.Table.ContainsKey("why." + key)) return L("why." + key);
                     return Strings.Table.ContainsKey("note." + key) ? L("note." + key) : null;
                 };

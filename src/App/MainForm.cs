@@ -880,23 +880,33 @@ namespace NyangTalk.App
         // ---------------------------------------------------------------- notification preview (90-SPEC 1.4)
 
         /// <summary>Shows the chosen alert once (flash, badge) without touching the real unread count.</summary>
+        public Action<IntPtr, bool> FlashTaskbar = Taskbar.Flash;
+        public Action<IntPtr, int> SetTaskbarBadge = Taskbar.SetBadge;
+        private string _notificationPreview;
+        private DateTime _notificationPreviewUntil;
+        private readonly Timer _notificationPreviewTimer = new Timer { Interval = 2500 };
+        private bool _notificationPreviewWired;
         public string PreviewNotification(string mode)
         {
-            if (mode == "off") return L("settings.notifyPreviewOff");
-            if (IsHandleCreated)
+            _notificationPreviewTimer.Stop();
+            _notificationPreview = mode == "off" ? null : mode;
+            _notificationPreviewUntil = _host.Clock.UtcNow.AddMilliseconds(2500);
+            if (!_notificationPreviewWired)
             {
-                Taskbar.Flash(Handle, true);
-                if (mode == "flashBadge") Taskbar.SetBadge(Handle, 3);
-                var t = new Timer { Interval = 2500 };
-                t.Tick += (s, e) => { t.Stop(); t.Dispose(); if (IsDisposed) return; Taskbar.Flash(Handle, _chat.Unread.Flashing); Taskbar.SetBadge(Handle, _chat.Unread.Unread); };
-                t.Start();
+                _notificationPreviewWired = true;
+                _notificationPreviewTimer.Tick += (s, e) => { _notificationPreviewTimer.Stop(); _notificationPreview = null; if (!IsDisposed) UpdateBadges(); };
+                Disposed += (s, e) => _notificationPreviewTimer.Dispose();
             }
+            UpdateBadges();
+            if (mode == "off") return L("settings.notifyPreviewOff");
+            _notificationPreviewTimer.Start();
             return L(mode == "flashBadge" ? "settings.notifyPreviewBadge" : "settings.notifyPreviewFlash");
         }
 
         // ---------------------------------------------------------------- 90-SPEC 1.2 window opacity
 
         private readonly Timer _hoverTimer = new Timer { Interval = 150 };
+        private int? _opacityPreview;
         private bool _hoverWired;
         public double OpacitySetting { get { return _prefs.Settings.GetInt("screen.opacity") / 100.0; } }
         public Func<bool> MouseOverWindow;
@@ -904,12 +914,13 @@ namespace NyangTalk.App
         /// <summary>Whole window (text included) at the chosen opacity; clicks and keyboard input keep working (layered window, not click-through).</summary>
         public void ApplyOpacity(int? preview = null)
         {
+            _opacityPreview = preview;
             double target = (preview ?? _prefs.Settings.GetInt("screen.opacity")) / 100.0;
             target = Math.Max(0.40, Math.Min(1.0, target));
-            bool hover = _prefs.Settings.GetBool("screen.opacityHover") && MouseOverWindow != null && MouseOverWindow();
+            bool hover = !preview.HasValue && _prefs.Settings.GetBool("screen.opacityHover") && MouseOverWindow != null && MouseOverWindow();
             var v = hover ? 1.0 : target;
             if (Math.Abs(Opacity - v) > 0.001) Opacity = v;
-            if (!_hoverWired) { _hoverWired = true; _hoverTimer.Tick += (s, e) => ApplyOpacity(); }
+            if (!_hoverWired) { _hoverWired = true; _hoverTimer.Tick += (s, e) => ApplyOpacity(_opacityPreview); }
             _hoverTimer.Enabled = _prefs.Settings.GetBool("screen.opacityHover") && target < 1.0;
         }
 
@@ -1137,8 +1148,9 @@ namespace NyangTalk.App
             var mode = _prefs.Settings.Get("notify.mode");
             _chat.Unread.Mode = mode == "off" ? NotifyMode.Off : (mode == "flash" ? NotifyMode.Flash : NotifyMode.FlashAndBadge);
             if (!IsHandleCreated) return;
-            Taskbar.Flash(Handle, _chat.Unread.Flashing);
-            Taskbar.SetBadge(Handle, _chat.Unread.Unread);
+            bool previewing = _notificationPreview != null && _host.Clock.UtcNow < _notificationPreviewUntil;
+            FlashTaskbar(Handle, previewing || _chat.Unread.Flashing);
+            SetTaskbarBadge(Handle, previewing ? (_notificationPreview == "flashBadge" ? 3 : 0) : _chat.Unread.Unread);
         }
 
         private bool _showAutomation;
@@ -1171,6 +1183,11 @@ namespace NyangTalk.App
                 _host.Portraits.SetLook(row.SteamId, key, now);
                 var have = _host.Portraits.For(row.SteamId);
                 if (row.PortraitFile != null && File.Exists(row.PortraitFile) && (have == null || !have.Key.Equals(key) || have.File != row.PortraitFile)) { _host.Portraits.OnRendered(key, row.PortraitFile, now); _dirty = true; Chat.InvalidateLayout(); }
+                if (row.PortraitFile != null && _prefs.Settings.Get("char.scope") == "face")
+                {
+                    var face = NyangTalk.Shared.PortraitFiles.FaceVariant(row.PortraitFile);
+                    if (!_images.ContainsKey(face) && File.Exists(face)) Chat.Invalidate();
+                }
             }
         }
 
@@ -1191,13 +1208,13 @@ namespace NyangTalk.App
             if (steamId == null) return null;
             var e = _host.Portraits.For(steamId);
             if (e == null) return null;
-            Image img;
-            if (_images.TryGetValue(e.File, out img)) return img;
-            try { using (var fs = new FileStream(e.File, FileMode.Open, FileAccess.Read, FileShare.ReadWrite)) img = new Bitmap(Image.FromStream(fs)); }
-            catch (IOException) { img = null; }
-            catch (ArgumentException) { img = null; }
-            if (img != null) _images[e.File] = img;
-            return img;
+            string file = e.File;
+            if (_prefs.Settings.Get("char.scope") == "face")
+            {
+                var face = NyangTalk.Shared.PortraitFiles.FaceVariant(file);
+                if (File.Exists(face)) file = face;
+            }
+            return PictureAt(file);
         }
 
         // ---------------------------------------------------------------- search
@@ -1472,7 +1489,7 @@ namespace NyangTalk.App
 
         private void DeletePortraits(IEnumerable<string> files)
         {
-            foreach (var f in files)
+            foreach (var f in files.SelectMany(file => new[] { file, NyangTalk.Shared.PortraitFiles.FaceVariant(file) }).Distinct(StringComparer.OrdinalIgnoreCase))
             {
                 Image img;
                 if (_images.TryGetValue(f, out img)) { img.Dispose(); _images.Remove(f); }

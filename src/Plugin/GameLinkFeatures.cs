@@ -126,9 +126,10 @@ namespace NyangTalk.GameLink
         /// <summary>70-SPEC 2.2.2: the person's cat in the scene if found, otherwise the item pictures.</summary>
         private string MakePortrait(string key)
         {
-            var parts = key.Split('_');
+            bool face = PortraitFiles.IsFaceKey(key);
+            var parts = PortraitFiles.FullKey(key).Split('_');
             int skin = int.Parse(parts[0]), hat = int.Parse(parts[1]);
-            var layers = SceneCatLayers(skin, hat) ?? ItemLayers(skin, hat);
+            var layers = SceneCatLayers(skin, hat, !face) ?? ItemLayers(skin, face ? 0 : hat);
             if (layers == null || layers.Count == 0) return null;
             var rel = Exchange.PortraitDir + "/" + key + ".png";
             var png = Render(layers, 128);
@@ -151,7 +152,7 @@ namespace NyangTalk.GameLink
         }
 
         /// <summary>Finds a scene cat with this look and lays out body → paw → hat in the body's coordinate space.</summary>
-        private List<KeyValuePair<Sprite, Rect>> SceneCatLayers(int skin, int hat)
+        private List<KeyValuePair<Sprite, Rect>> SceneCatLayers(int skin, int hat, bool includeHat = true)
         {
             object cat = null;
             foreach (var kv in _looks)
@@ -170,7 +171,7 @@ namespace NyangTalk.GameLink
             };
             add("cat.baseSprite", "cat.bodyImage");
             add("cat.frontSprite", "cat.pawImage");
-            if (hat > 0) add("cat.hatSprite", "cat.hatImage");
+            if (includeHat && hat > 0) add("cat.hatSprite", "cat.hatImage");
             if (spritesAndImages.Count == 0) return null;
             // bounds of all layers in the body's local space
             var body = spritesAndImages[0].Value.transform;
@@ -283,7 +284,8 @@ namespace NyangTalk.GameLink
         {
             _looks[steamId] = new KeyValuePair<int, int>(skin, hat);
             StartPictureLoop();
-            return _portraits.Request(skin + "_" + hat);
+            var key = skin + "_" + hat;
+            return PortraitFiles.RequestPair(_portraits, key); // same queue: still only one render per frame
         }
 
         private Dictionary<string, object> EmoteStatus()

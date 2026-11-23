@@ -38,15 +38,15 @@ namespace NyangTalk.App.Platform
 
         private static ITaskbarList3 _list;
         private static int _lastCount = -1;
+        private static IntPtr _lastWindow;
 
         public static void SetBadge(IntPtr hwnd, int count)
         {
-            if (count == _lastCount) return;
-            _lastCount = count;
+            if (hwnd == _lastWindow && count == _lastCount) return;
             try
             {
                 if (_list == null) { _list = (ITaskbarList3)new TaskbarListClass(); _list.HrInit(); }
-                if (count <= 0) { _list.SetOverlayIcon(hwnd, IntPtr.Zero, null); return; }
+                if (count <= 0) { _list.SetOverlayIcon(hwnd, IntPtr.Zero, null); _lastWindow = hwnd; _lastCount = count; return; }
                 using (var bmp = new Bitmap(16, 16))
                 {
                     using (var g = Graphics.FromImage(bmp))
@@ -58,9 +58,10 @@ namespace NyangTalk.App.Platform
                             TextRenderer.DrawText(g, t, f, new Rectangle(0, 0, 16, 16), Color.White, TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.NoPadding);
                     }
                     IntPtr h = bmp.GetHicon();
-                    _list.SetOverlayIcon(hwnd, h, count.ToString());
-                    DestroyIcon(h);
+                    try { _list.SetOverlayIcon(hwnd, h, count.ToString()); }
+                    finally { DestroyIcon(h); }
                 }
+                _lastWindow = hwnd; _lastCount = count;
             }
             // The taskbar may be missing or restarting (Explorer restart, locked-down session): the badge is then skipped.
             // This runs inside window activation, where an exception would end the whole app, so every COM failure
@@ -69,6 +70,7 @@ namespace NyangTalk.App.Platform
             {
                 if (!(ex is ExternalException || ex is InvalidCastException || ex is NotImplementedException || ex is UnauthorizedAccessException || ex is ArgumentException)) throw;
                 _list = null;   // created but not initialised: try a fresh one next time
+                _lastWindow = IntPtr.Zero; _lastCount = -1;
             }
         }
     }

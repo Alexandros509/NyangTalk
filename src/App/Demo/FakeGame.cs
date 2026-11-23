@@ -12,7 +12,7 @@ namespace NyangTalk.App.Demo
     /// </summary>
     public sealed class FakeGame
     {
-        public const string ProducerVersion = "0.1.0";
+        public const string ProducerVersion = "0.1.1";
         private readonly string _dir;
         private readonly Random _rnd = new Random(7);
         private int _seq;
