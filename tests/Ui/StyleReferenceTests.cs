@@ -87,7 +87,7 @@ namespace NyangTalk.Tests
         }
 
         [Test("90-1")]
-        public static void PeachOwnBubbleUsesSoftSurfaceWhileControlsKeepReferenceAccent()
+        public static void PeachOwnBubbleUsesSoftSurfaceAndSendUsesFaceColour()
         {
             foreach (bool dark in new[] { false, true })
             {
@@ -95,6 +95,8 @@ namespace NyangTalk.Tests
                 A.Eq(t.Soft, t.MineBubble, "own bubble uses the requested quiet surface");
                 A.Eq(t.Text, t.MineText, "own text follows the quiet surface");
                 A.Eq("#C9365B", t.Accent.ToHex(), "reference accent on controls remains recorded");
+                A.Eq("#DF557C", t.SendFill.ToHex(), "send uses the supplied face background");
+                A.True(ColorMath.Contrast(t.SendText, t.SendFill) >= 4.5, "send label remains readable");
                 A.True(ColorMath.Contrast(t.MineText, t.MineBubble) >= 4.5, "soft bubble remains readable");
             }
         }
@@ -262,11 +264,11 @@ namespace NyangTalk.Tests
                     A.Eq(RenderStyle.C(t.Soft), rig.Form.SearchBar.BackColor, "search strip uses the reference soft surface");
                     A.Eq(RenderStyle.C(t.Soft), rig.Form.SearchBox.BackColor, "search editor blends with the soft strip");
                     rig.Form.SendButton.Enabled = true;
-                    A.Eq(RenderStyle.C(t.Accent), rig.Form.SendButton.BackColor, "enabled send uses the reference accent");
-                    A.Eq(RenderStyle.C(t.AccentText), rig.Form.SendButton.ForeColor, "enabled send uses accent text");
+                    A.Eq(RenderStyle.C(t.SendFill), rig.Form.SendButton.BackColor, "enabled send uses its theme surface");
+                    A.Eq(RenderStyle.C(t.SendText), rig.Form.SendButton.ForeColor, "enabled send uses its theme text");
                     rig.Form.SendButton.Enabled = false;
-                    A.Eq(HeaderPill.Composite(RenderStyle.C(t.Panel), RenderStyle.C(t.Accent), 0.4f), rig.Form.SendButton.BackColor, "disabled send follows the reference opacity");
-                    A.Eq(HeaderPill.Composite(RenderStyle.C(t.Panel), RenderStyle.C(t.AccentText), 0.4f), rig.Form.SendButton.ForeColor, "disabled send text follows the reference opacity");
+                    A.Eq(HeaderPill.Composite(RenderStyle.C(t.Panel), RenderStyle.C(t.SendFill), 0.4f), rig.Form.SendButton.BackColor, "disabled send follows the reference opacity");
+                    A.Eq(HeaderPill.Composite(RenderStyle.C(t.Panel), RenderStyle.C(t.SendText), 0.4f), rig.Form.SendButton.ForeColor, "disabled send text follows the reference opacity");
                     A.Eq(Color.FromArgb(t.OtherBubble.R, t.OtherBubble.G, t.OtherBubble.B), b.PillFill, "reference bubble colour on header actions");
                     A.Eq(Color.FromArgb(t.Border.R, t.Border.G, t.Border.B), b.PillBorder, "reference border");
                     A.True(rig.Form.Faces.Faces.Count > 0, "participant avatars are preserved");

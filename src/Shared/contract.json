@@ -1,5 +1,5 @@
 {
-  "contract_version": 3,
+  "contract_version": 4,
   "note": "Game members used for interoperability by the NyangTalk game component. Read from game metadata on 2026-11-19 (Steam buildid 26754239, Unity 6000.2.8f1).",
   "verified_fingerprints": [],
   "entries": [
@@ -113,7 +113,7 @@
         "Vfx.CatSpeech"
       ],
       "kind": "type",
-      "required": false
+      "required": true
     },
     {
       "id": "speech.maxChars",
@@ -141,7 +141,24 @@
         "_isMainCat"
       ],
       "returns": "System.Boolean",
-      "required": false
+      "required": true
+    },
+    {
+      "id": "speech.send",
+      "area": "ChatSend",
+      "assembly": "Assembly-CSharp",
+      "type": [
+        "Vfx.CatSpeech"
+      ],
+      "kind": "method",
+      "name": [
+        "SendSpeech"
+      ],
+      "returns": "System.Void",
+      "params": [
+        "System.String"
+      ],
+      "static": false
     },
     {
       "id": "lobby.current",

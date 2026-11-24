@@ -194,12 +194,23 @@ namespace NyangTalk.Tests
         {
             var dll = Path.Combine(Ctx.Root, "build", "NyangTalk.GameLink.dll");
             if (!HaveGame || !File.Exists(dll)) { Ctx.Measurements.Add("플러그인 참조 검사: 게임 또는 플러그인 빌드 없음 — 실행하지 않음"); return; }
-            var world = new GameCheck.World(GameCheck.ManagedDir(RealGame), Path.Combine(RealGame, "BepInEx", "core"));
+            // Match Mono's configured profile first, then the loader's own assemblies and the stripped game modules.
+            var full = NyangTalk.App.LinkServices.DoorstopOverride(RealGame);
+            var world = new GameCheck.World(GameCheck.ManagedDir(RealGame), full);
+            if (!string.IsNullOrEmpty(full) && File.Exists(Path.Combine(full, "mscorlib.dll")))
+                A.Eq(Path.GetFullPath(Path.Combine(full, "mscorlib.dll")), Path.GetFullPath(world.Get("mscorlib").Path), "checks the corlib actually selected by Doorstop");
+            foreach (var file in Directory.GetFiles(Path.Combine(RealGame, "BepInEx", "core"), "*.dll"))
+            {
+                var assembly = MetadataReader.Read(file);
+                world.Loaded[assembly.Name] = assembly;
+            }
             // Assembly-level attributes the C# compiler always emits; Mono resolves them only when they are reflected on.
             // Listed on the manual checklist (plugin must load in the real game).
             var compilerEmitted = new[] { "type mscorlib:System.Diagnostics.DebuggableAttribute", "type mscorlib:System.Runtime.CompilerServices.CompilationRelaxationsAttribute" };
-            var missing = GameCheck.MissingReferences(world, MetadataReader.Read(dll)).Where(m => !compilerEmitted.Contains(m)).ToList();
-            A.True(missing.Count == 0, "plugin uses members the game's stripped libraries lack: " + string.Join("; ", missing.Take(8)));
+            var plugin = MetadataReader.Read(dll);
+            world.Loaded[plugin.Name] = plugin; // generic closure/member references may point back to this exact module
+            var missing = GameCheck.MissingReferences(world, plugin).Where(m => !compilerEmitted.Contains(m)).ToList();
+            A.True(missing.Count == 0, "plugin references absent from the configured game runtime: " + string.Join("; ", missing.Take(8)));
         }
     }
 }

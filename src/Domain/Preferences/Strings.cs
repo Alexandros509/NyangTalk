@@ -59,6 +59,7 @@ namespace NyangTalk.Domain.Preferences
             T("send.unconfirmed", "확인 못 함", "Not confirmed", "未確認");
             T("send.rejected", "보내지 못했어요: {0}", "Not sent: {0}", "送信できませんでした: {0}");
             T("send.failed", "보내지 못했어요", "Could not send", "送信できませんでした");
+            T("send.speechNotReady", "게임의 대화 표시가 아직 준비되지 않았어요", "The game's speech display is not ready yet", "ゲームの発言表示はまだ準備できていません");
             T("send.retry", "다시 보내기", "Send again", "再送信");
             T("send.delete", "지우기", "Delete", "削除");
             T("send.resendAsk", "이미 전달됐을 수도 있어요", "It may already have been delivered", "すでに届いている可能性があります");

@@ -120,6 +120,23 @@ namespace NyangTalk.Tests
             A.Eq(0, s.Clicks, "never clicked");
         }
 
+        [Test("80-1.2.6,automation")]
+        public static void InsufficientPointsAreExplainedWhenGameAlsoDeniesCanGet()
+        {
+            var automaton = new ChestAutomaton();
+            // The actual game defines CanGetChest as ChestIsReady && CanAffordChest.
+            var shop = new FakeShop("Cosmetic") { Ready = true, CanAfford = false, CanGet = false };
+            var now = Fake.T0;
+            automaton.Tick(now, Permit(now, "Cosmetic"), new List<IChestShop> { shop }, false);
+            A.Eq("paused", automaton.State, "a ready but unaffordable chest is paused");
+            A.Eq("points", automaton.Reason, "the game condition is explained rather than silently waiting");
+            A.Eq(0, shop.Clicks, "no purchase is attempted");
+            shop.CanAfford = true; shop.CanGet = true;
+            now = now.AddSeconds(3);
+            automaton.Tick(now, Permit(now, "Cosmetic"), new List<IChestShop> { shop }, false);
+            A.Eq(1, shop.Clicks, "eligible chest resumes after points are available");
+        }
+
         [Test("80-4.6")]
         public static void PluginOpensChestsOnlyThroughShopClick()
         {

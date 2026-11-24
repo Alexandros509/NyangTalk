@@ -60,6 +60,8 @@ namespace NyangTalk.App.Controls
         public IconKind Icon;
         public Color IconColor = Color.FromArgb(0x33, 0x33, 0x33);
         public bool Round;
+        /// <summary>Rounded surface for text actions; independent of header pills and circular icon buttons.</summary>
+        public int CornerRadius;
         /// <summary>When true, draws a rounded bordered pill/chip block with <see cref="PillText"/> instead of the line icon.</summary>
         public bool Pill;
         public string PillText;
@@ -121,6 +123,32 @@ namespace NyangTalk.App.Controls
             base.OnPaint(pevent);
             var g = pevent.Graphics;
             g.SmoothingMode = SmoothingMode.AntiAlias;
+            bool roundedAction = CornerRadius > 0 && !Pill;
+            if (roundedAction)
+            {
+                float radius = Round ? Math.Min(Width, Height) / 2f : CornerRadius;
+                g.Clear(Parent == null ? BackColor : Parent.BackColor);
+                var hoverTint = ForeColor.GetBrightness() < BackColor.GetBrightness() ? Color.White : Color.Black;
+                var fill = Enabled && (_hot || _down)
+                    ? HeaderPill.Composite(BackColor, hoverTint, _down ? 0.12f : 0.05f) : BackColor;
+                using (var path = ThemedControl.Round(new RectangleF(0.5f, 0.5f, Width - 1, Height - 1), radius))
+                {
+                    using (var brush = new SolidBrush(fill)) g.FillPath(brush, path);
+                    if (FlatAppearance.BorderSize > 0)
+                        using (var pen = new Pen(FlatAppearance.BorderColor, FlatAppearance.BorderSize)) g.DrawPath(pen, path);
+                }
+                if (FocusRingVisible)
+                    using (var pen = new Pen(ForeColor, 1f) { DashStyle = DashStyle.Dot })
+                    using (var path = ThemedControl.Round(new RectangleF(3.5f, 3.5f, Width - 7, Height - 7), Math.Max(1, radius - 3)))
+                        g.DrawPath(pen, path);
+                if (Text.Length > 0)
+                {
+                    TextRenderer.DrawText(g, Text, Font, Rectangle.Inflate(ClientRectangle, -6, -2), ForeColor, fill,
+                        TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.NoPrefix
+                        | TextFormatFlags.NoPadding | TextFormatFlags.SingleLine | TextFormatFlags.PreserveGraphicsClipping);
+                    return;
+                }
+            }
             if (!Enabled && Text.Length > 0 && !Pill)
             {
                 // Native disabled Button text ignores ForeColor and can become black on a dark theme.
@@ -139,14 +167,14 @@ namespace NyangTalk.App.Controls
                     PillBorder.IsEmpty ? IconColor : PillBorder, ForeColor, PillVisualOpacity, FocusRingVisible, BackColor);
                 return;
             }
-            if (FocusRingVisible)
+            if (FocusRingVisible && !roundedAction)
                 using (var ring = new Pen(Color.FromArgb(150, Text.Length > 0 ? ForeColor : IconColor), 1.5f))
                 using (var path = NyangTalk.App.Controls.ThemedControl.Round(new RectangleF(2.5f, 2.5f, Width - 5, Height - 5), Round ? Math.Min(Width, Height) / 2f - 3 : 5))
                     g.DrawPath(ring, path);
             if (Text.Length > 0 || Icon == IconKind.None) return; // text buttons (e.g. "보내기") draw no icon
             float s = Math.Min(Width, Height) * 0.5f;
             float cx = Width / 2f, cy = Height / 2f;
-            var color = Enabled ? IconColor : Color.FromArgb(120, IconColor);
+            var color = Enabled || roundedAction ? IconColor : Color.FromArgb(120, IconColor);
             using (var pen = new Pen(color, Math.Max(1.6f, s / 8f)) { StartCap = LineCap.Round, EndCap = LineCap.Round, LineJoin = LineJoin.Round })
             using (var brush = new SolidBrush(color))
             {

@@ -2,7 +2,7 @@
 
 `build.ps1` 실행 때 자동으로 생성된다. 손으로 고치지 않는다.
 
-생성: 2026-11-24 00:26 · 통과 228 · 실패 0
+생성: 2026-11-24 14:07 · 통과 245 · 실패 0
 
 | 명세 항목 | 검사 |
 |---|---|
@@ -62,6 +62,8 @@
 | 40-1.1 | PASS DistributionTests.FullCorlibUsesTheWindowsPlatformProfile<br>PASS DistributionTests.UnstrippedLibrariesAndLgplSourcesShipped<br>PASS GameCheckTests.PluginReferencesExistInGameLibraries<br>PASS GameLinkDomainTests.GameLogMarkers<br>PASS InstallerTests.PrecheckBlocksMixingAndPassesWhenFixed<br>PASS ModParkingTests.EarlierSetupMovesOutInstallsFreshAndComesBack |
 | 40-1.2 | PASS OfflineRecordTests.ComponentTrimDoesNotDuplicate<br>PASS OfflineRecordTests.MessagesWrittenWhileAppClosedAppearOnce<br>PASS OfflineRecordTests.RetentionCleansExchangeAndRecordsForeverKeeps |
 | 40-2 | PASS LobbyTests.LobbyCodeDisplay |
+| 40-3 | PASS NativeSpeechContractTests.NativeSpeechContractUpdatesTheLocalBubbleAndKeepsTheFilterGate |
+| 40-4 | PASS ComponentIoTests.PermitReaderAllowsTheAtomicWritersExistingHandle<br>PASS ComponentIoTests.PermitSnapshotsStayCompleteDuringAtomicReplacement<br>PASS ComponentIoTests.SnapshotReaderRejectsOversizedControlFiles |
 | 40-5.3 | PASS LocatorTests.RealPcSearchFindsInstalledGame |
 | 40-5.5.1 | PASS LocatorTests.OneLibraryFoundAndSaved |
 | 40-5.5.2 | PASS LocatorTests.SecondLibrary |
@@ -71,6 +73,7 @@
 | 40-5.5.6 | PASS LocatorTests.StartDoesNotTouchFiles |
 | 40-5.5.7 | PASS LocatorTests.SeveralCandidatesListed |
 | 40-6 | PASS InstallerTests.DriftDetectedAfterGameUpdate<br>PASS InstallerTests.ExistingBepInExIsKept<br>PASS InstallerTests.FailureMidInstallRollsBack<br>PASS InstallerTests.ForeignFileAtOurPathNotOverwritten<br>PASS InstallerTests.LoaderMissingIsReported<br>PASS InstallerTests.UnreadableRecordStopsOperations<br>PASS ModParkingTests.EarlierSetupMovesOutInstallsFreshAndComesBack<br>PASS ModParkingTests.RestoreNeverOverwritesAndChecksHashes<br>PASS PanelAndLinkTests.ReinstallClosesInstallsAndRelaunches |
+| 40-7 | PASS ComponentErrorNoticeTests.HealthyStatusRemovesOldWarningAndLetsARecurrenceShowAgain<br>PASS ComponentIoTests.RecoveredOperationClearsOnlyItsOwnCurrentFault |
 | 40-7.1 | PASS InstallerTests.InstallWritesFilesAndRecord |
 | 40-7.10 | PASS ExchangeTests.ForgedRequestsRefused |
 | 40-7.2 | PASS InstallerTests.ReinstallSameVersionChangesNothing |
@@ -87,7 +90,7 @@
 | 50-3.묶기 | PASS OfflineRecordTests.TextOrEmoteBetweenMeowsStartsNewGroup |
 | 50-4 | PASS StorageTests.TailReadAndRooms |
 | 50-5 | PASS UiTests.SearchJumpsToUnpaintedRow |
-| 50-7 | PASS ExchangeTests.SendFlowEndToEnd<br>PASS ExchangeTests.UnconfirmedAfterTenSeconds<br>PASS ExchangeTests.UnsentMessagesSurviveRestart<br>PASS SendingTests.SendChecks<br>PASS SendingTests.SendLogCappedAt500<br>PASS SendingTests.StatesAndTimeout<br>PASS StyleReferenceTests.MultilineDraftRoundTripsWithoutTreatingMarkupAsFormatting<br>PASS StyleReferenceTests.SendingStillRoundTripsAfterHeaderAndFontChanges |
+| 50-7 | PASS ExchangeTests.SendFlowEndToEnd<br>PASS ExchangeTests.UnconfirmedAfterTenSeconds<br>PASS ExchangeTests.UnsentMessagesSurviveRestart<br>PASS NativeSpeechContractTests.NativeSpeechContractUpdatesTheLocalBubbleAndKeepsTheFilterGate<br>PASS SendingTests.SendChecks<br>PASS SendingTests.SendLogCappedAt500<br>PASS SendingTests.StatesAndTimeout<br>PASS StyleReferenceTests.MultilineDraftRoundTripsWithoutTreatingMarkupAsFormatting<br>PASS StyleReferenceTests.SendingStillRoundTripsAfterHeaderAndFontChanges |
 | 50-7.짝짓기 | PASS SendingTests.StrictPairing |
 | 50-7.필터 | PASS FilterAndPictureAppTests.FilteredMessageShownAsNotDelivered<br>PASS StyleReferenceTests.RejectedFilterNeverInvokesTransmission |
 | 50-9.1 | PASS ConversationTests.BodyIsKeptVerbatim<br>PASS ExchangeTests.HistoryWriteFailureLosesNothing |
@@ -122,13 +125,14 @@
 | 70-3.6 | PASS UiTests.AllCombinationsLayoutAndContrast<br>PASS UiTests.DependentSettingsDisabled |
 | 70-3.7 | PASS DistributionTests.DistributionAssetsAreListedAndGameAssembliesAreExcluded |
 | 80-0 | PASS PanelAndLinkTests.AutomationNeedsNoPopUpAndKeepsTheNotice |
-| 80-1.2.1 | PASS ChestAutomatonTests.OpensOnlyChosenReadyAffordableAfterDelay<br>PASS FilterAndPictureAppTests.PermitNeedsSwitchConsentAndConnection |
+| 80-1.2.1 | PASS AutomationRuntimeTests.OwnChestsReceiveFreshPermitsOutsideALobby<br>PASS ChestAutomatonTests.OpensOnlyChosenReadyAffordableAfterDelay<br>PASS FilterAndPictureAppTests.PermitNeedsSwitchConsentAndConnection |
 | 80-1.2.2 | PASS ChestAutomatonTests.OpensOnlyChosenReadyAffordableAfterDelay |
 | 80-1.2.3 | PASS ChestAutomatonTests.OpensOnlyChosenReadyAffordableAfterDelay |
 | 80-1.2.4 | PASS ChestAutomatonTests.OneAtATimeAndOncePerReadyState |
 | 80-1.2.5 | PASS ChestAutomatonTests.OneAtATimeAndOncePerReadyState |
-| 80-1.2.6 | PASS ChestAutomatonTests.PausesForPointsAndHourlyCap |
-| 80-1.2.7 | PASS ChestAutomatonTests.StopsWithoutFreshPermitOrForOtherSession |
+| 80-1.2.6 | PASS ChestAutomatonTests.InsufficientPointsAreExplainedWhenGameAlsoDeniesCanGet<br>PASS ChestAutomatonTests.PausesForPointsAndHourlyCap |
+| 80-1.2.7 | PASS AutomationRuntimeTests.PermitChangesRebindAndRevokeWithoutTheTwoSecondDelay<br>PASS ChestAutomatonTests.StopsWithoutFreshPermitOrForOtherSession |
+| 80-2 | PASS AutomationRuntimeTests.GiftPermitsRequireALobbyAndRevokeImmediatelyWhenLeaving |
 | 80-2.1 | PASS GiftTests.OpensOnlyOtherPresentMembersWithPermit |
 | 80-2.2 | PASS GiftTests.OpensOnlyOtherPresentMembersWithPermit |
 | 80-2.3 | PASS GiftTests.WaitsForPointsAndForOwnChestOrExchange |
@@ -136,13 +140,13 @@
 | 80-2.5 | PASS GiftTests.RoomChangeStopsOldPermit |
 | 80-2.6 | PASS GiftTests.OncePerReadyStateAndSharedHourlyCap |
 | 80-2.동의 | PASS GiftTests.SeparateConsentAndOnlyTheClickPath |
-| 80-4.1 | PASS AutomationTests.ChestRules<br>PASS FilterAndPictureAppTests.PermitNeedsSwitchConsentAndConnection |
-| 80-4.2 | PASS AutomationTests.PermitExpires<br>PASS ChestAutomatonTests.StopsWithoutFreshPermitOrForOtherSession |
+| 80-4.1 | PASS AutomationRuntimeTests.ConsentConnectionAndSupportedGameStateRemainRequired<br>PASS AutomationRuntimeTests.OwnChestsReceiveFreshPermitsOutsideALobby<br>PASS AutomationTests.ChestRules<br>PASS FilterAndPictureAppTests.PermitNeedsSwitchConsentAndConnection |
+| 80-4.2 | PASS AutomationRuntimeTests.ConsentConnectionAndSupportedGameStateRemainRequired<br>PASS AutomationRuntimeTests.GiftPermitsRequireALobbyAndRevokeImmediatelyWhenLeaving<br>PASS AutomationRuntimeTests.PermitChangesRebindAndRevokeWithoutTheTwoSecondDelay<br>PASS AutomationTests.PermitExpires<br>PASS ChestAutomatonTests.StopsWithoutFreshPermitOrForOtherSession<br>PASS ComponentIoTests.PermitReaderAllowsTheAtomicWritersExistingHandle<br>PASS ComponentIoTests.PermitSnapshotsStayCompleteDuringAtomicReplacement<br>PASS ComponentIoTests.RecoveredOperationClearsOnlyItsOwnCurrentFault |
 | 80-4.3 | PASS AutomationTests.ChestRules<br>PASS ChestAutomatonTests.OpensOnlyChosenReadyAffordableAfterDelay |
 | 80-4.4 | PASS AutomationTests.ChestRules<br>PASS ChestAutomatonTests.PausesForPointsAndHourlyCap |
 | 80-4.5 | PASS AutomationTests.ChestRules |
 | 80-4.6 | PASS ChestAutomatonTests.PluginOpensChestsOnlyThroughShopClick<br>PASS GiftTests.SeparateConsentAndOnlyTheClickPath |
-| 90-1 | PASS DistributionTests.BundledFontsLoadAndMeasure<br>PASS DpiStartupTests.DisplayConfigurationWriteFailureStopsBeforeUiStartup<br>PASS DpiStartupTests.MissingOrBrokenDisplayConfigurationIsRepairedWithoutTouchingPreferences<br>PASS DpiStartupTests.UiDomainUsesItsOwnPerMonitorConfiguration<br>PASS PeopleTests.ThemesTextContrast<br>PASS SettingsWindowTests.RemovedItemsStayRemoved<br>PASS StyleReferenceTests.ApprovedPaletteAndHeaderStatesMatch<br>PASS StyleReferenceTests.BubbleWidthMatchesRenderedGlyphsWithoutHiddenRightPadding<br>PASS StyleReferenceTests.DemoClearlyIdentifiesThatItDoesNotSendToTheGame<br>PASS StyleReferenceTests.HeaderPaintSurvivesRepeatedStyleAndFontSizeChanges<br>PASS StyleReferenceTests.NoticeUsesQuietThemeSurfaceAndTypographyFitsEverySize<br>PASS StyleReferenceTests.OwnBubblesKeepTheirBaselineWithTimeAndAvatar<br>PASS StyleReferenceTests.PeachOwnBubbleUsesSoftSurfaceWhileControlsKeepReferenceAccent<br>PASS StyleReferenceTests.SendingStillRoundTripsAfterHeaderAndFontChanges |
+| 90-1 | PASS DistributionTests.BundledFontsLoadAndMeasure<br>PASS DpiStartupTests.DisplayConfigurationWriteFailureStopsBeforeUiStartup<br>PASS DpiStartupTests.MissingOrBrokenDisplayConfigurationIsRepairedWithoutTouchingPreferences<br>PASS DpiStartupTests.UiDomainUsesItsOwnPerMonitorConfiguration<br>PASS PeopleTests.ThemesTextContrast<br>PASS SettingsWindowTests.RemovedItemsStayRemoved<br>PASS StyleReferenceTests.ApprovedPaletteAndHeaderStatesMatch<br>PASS StyleReferenceTests.BubbleWidthMatchesRenderedGlyphsWithoutHiddenRightPadding<br>PASS StyleReferenceTests.DemoClearlyIdentifiesThatItDoesNotSendToTheGame<br>PASS StyleReferenceTests.HeaderPaintSurvivesRepeatedStyleAndFontSizeChanges<br>PASS StyleReferenceTests.NoticeUsesQuietThemeSurfaceAndTypographyFitsEverySize<br>PASS StyleReferenceTests.OwnBubblesKeepTheirBaselineWithTimeAndAvatar<br>PASS StyleReferenceTests.PeachOwnBubbleUsesSoftSurfaceAndSendUsesFaceColour<br>PASS StyleReferenceTests.SendingStillRoundTripsAfterHeaderAndFontChanges |
 | 90-1.1 | PASS WindowTests.BorderLevelsThemesAndFocus |
 | 90-1.2 | PASS WindowTests.OpacityRangeStepPreviewAndHover |
 | 90-1.3 | PASS WindowTests.TitleBarFollowsThemeOnWindows11 |
@@ -173,17 +177,22 @@
 | 95-2.3 | PASS HealthLogResendTests.UnconfirmedResendNeedsASecondPressRejectedDoesNot |
 | 95-2.4 | PASS HealthLogResendTests.HealthWarnsOnlyWhenTheAppMissesWhatTheComponentGot |
 | 95-2.5 | PASS HealthLogResendTests.LogFileRotatesAndKeepsNoPrivateData |
-| 95-2.6 | PASS PanelAndLinkTests.ConnectionProblemsShowOneActionOnTheNoticeLine<br>PASS PanelAndLinkTests.NoticeLinePriorityAndDismissal<br>PASS StyleReferenceTests.NoticeUsesQuietThemeSurfaceAndTypographyFitsEverySize |
+| 95-2.6 | PASS ComponentErrorNoticeTests.HealthyStatusRemovesOldWarningAndLetsARecurrenceShowAgain<br>PASS PanelAndLinkTests.ConnectionProblemsShowOneActionOnTheNoticeLine<br>PASS PanelAndLinkTests.NoticeLinePriorityAndDismissal<br>PASS StyleReferenceTests.NoticeUsesQuietThemeSurfaceAndTypographyFitsEverySize |
 | 95-2.7 | PASS GroupDTests.SavedRoomsGroupUngroupSearchExportAndRetention |
 | 95-2.8 | PASS GroupDTests.ParticipantsShowLastListInGreyWhenDisconnectedAndLiveWhenReconnected |
 | 95-2.9 | PASS GroupDTests.FirstRunAsksLanguageInWindowWithKoreanPreselectedAndOnceOnly |
 | DPI | PASS DpiStartupTests.DisplayConfigurationWriteFailureStopsBeforeUiStartup<br>PASS DpiStartupTests.MissingOrBrokenDisplayConfigurationIsRepairedWithoutTouchingPreferences<br>PASS DpiStartupTests.UiDomainUsesItsOwnPerMonitorConfiguration<br>PASS ParticipantsLayoutTests.ParticipantLabelsWrapInEveryLanguageAndFontSize<br>PASS ParticipantsLayoutTests.ShortParticipantOverlayKeepsAllTextReachable<br>PASS SettingsPreviewTests.AllPreviewRowsRemainVisibleAtLargeFontAndNarrowSettingsWidth<br>PASS SidebarLayoutTests.DefaultSidebarRemainsExpandedAfterApplyingTheWindowPreset<br>PASS SidebarLayoutTests.ShortOverlayScrollsInsteadOfCrushingItsContents<br>PASS SidebarLayoutTests.SidebarSectionsAndHeaderSurviveFontChanges<br>PASS StyleReferenceTests.DemoClearlyIdentifiesThatItDoesNotSendToTheGame |
 | LGPL | PASS DistributionTests.UnstrippedLibrariesAndLgplSourcesShipped |
+| automation | PASS AutomationRuntimeTests.ConsentConnectionAndSupportedGameStateRemainRequired<br>PASS AutomationRuntimeTests.GiftPermitsRequireALobbyAndRevokeImmediatelyWhenLeaving<br>PASS AutomationRuntimeTests.OwnChestsReceiveFreshPermitsOutsideALobby<br>PASS AutomationRuntimeTests.PermitChangesRebindAndRevokeWithoutTheTwoSecondDelay<br>PASS ChestAutomatonTests.InsufficientPointsAreExplainedWhenGameAlsoDeniesCanGet |
+| catalog | PASS CatalogCompatibilityTests.AlreadyCompatibleCatalogAndUnexpectedPatchesRemainUntouched<br>PASS CatalogCompatibilityTests.InspectionReadsOnlyTheHeaderAndHandlesShortReads<br>PASS CatalogCompatibilityTests.KnownRuntimeMismatchChangesOnlyTheCatalogMagic<br>PASS CatalogCompatibilityTests.OnlyTheExactKnownMutableCatalogFieldIsEligible<br>PASS CatalogCompatibilityTests.ProductionPathNeverChangesFilesAndSurfacesReadErrors<br>PASS CatalogCompatibilityTests.UnknownHeadersVersionsAndShortInputsFailClosed |
+| compatibility | PASS CatalogCompatibilityTests.AlreadyCompatibleCatalogAndUnexpectedPatchesRemainUntouched<br>PASS CatalogCompatibilityTests.InspectionReadsOnlyTheHeaderAndHandlesShortReads<br>PASS CatalogCompatibilityTests.KnownRuntimeMismatchChangesOnlyTheCatalogMagic<br>PASS CatalogCompatibilityTests.OnlyTheExactKnownMutableCatalogFieldIsEligible<br>PASS CatalogCompatibilityTests.ProductionPathNeverChangesFilesAndSurfacesReadErrors<br>PASS CatalogCompatibilityTests.UnknownHeadersVersionsAndShortInputsFailClosed |
+| component-io | PASS ComponentErrorNoticeTests.HealthyStatusRemovesOldWarningAndLetsARecurrenceShowAgain<br>PASS ComponentIoTests.PermitReaderAllowsTheAtomicWritersExistingHandle<br>PASS ComponentIoTests.PermitSnapshotsStayCompleteDuringAtomicReplacement<br>PASS ComponentIoTests.RecoveredOperationClearsOnlyItsOwnCurrentFault<br>PASS ComponentIoTests.SnapshotReaderRejectsOversizedControlFiles |
 | notify | PASS SettingsPreviewTests.NotificationPreviewSurvivesNormalPollingAndRestoresUnreadState |
 | opacity | PASS SettingsPreviewTests.OpacityDragPreviewSurvivesHoverTimerAndCancelsWhenSettingsClose |
 | participants | PASS ParticipantsLayoutTests.ParticipantLabelsWrapInEveryLanguageAndFontSize<br>PASS ParticipantsLayoutTests.ShortParticipantOverlayKeepsAllTextReachable |
 | portrait | PASS SettingsPreviewTests.FaceScopeUsesCompanionImageAndFallsBackForOlderConnectors<br>PASS SettingsPreviewTests.OlderConnectorExplainsFaceScopeWithoutBreakingChat<br>PASS SettingsPreviewTests.PortraitVariantsShareTheSingleFrameQueueAndRepairMissingFiles |
 | preview | PASS SettingsPreviewTests.AllPreviewRowsRemainVisibleAtLargeFontAndNarrowSettingsWidth<br>PASS SettingsPreviewTests.FaceScopeUsesCompanionImageAndFallsBackForOlderConnectors<br>PASS SettingsPreviewTests.NotificationPreviewSurvivesNormalPollingAndRestoresUnreadState<br>PASS SettingsPreviewTests.OlderConnectorExplainsFaceScopeWithoutBreakingChat<br>PASS SettingsPreviewTests.OpacityDragPreviewSurvivesHoverTimerAndCancelsWhenSettingsClose<br>PASS SettingsPreviewTests.PortraitVariantsShareTheSingleFrameQueueAndRepairMissingFiles<br>PASS SettingsPreviewTests.PreviewImagesAndHeaderChangeThroughTheirActualEditors |
+| send | PASS NativeSpeechContractTests.NativeSpeechContractUpdatesTheLocalBubbleAndKeepsTheFilterGate |
 | settings | PASS SettingsPreviewTests.AllPreviewRowsRemainVisibleAtLargeFontAndNarrowSettingsWidth<br>PASS SettingsPreviewTests.FaceScopeUsesCompanionImageAndFallsBackForOlderConnectors<br>PASS SettingsPreviewTests.NotificationPreviewSurvivesNormalPollingAndRestoresUnreadState<br>PASS SettingsPreviewTests.OlderConnectorExplainsFaceScopeWithoutBreakingChat<br>PASS SettingsPreviewTests.OpacityDragPreviewSurvivesHoverTimerAndCancelsWhenSettingsClose<br>PASS SettingsPreviewTests.PortraitVariantsShareTheSingleFrameQueueAndRepairMissingFiles<br>PASS SettingsPreviewTests.PreviewImagesAndHeaderChangeThroughTheirActualEditors |
 | sidebar | PASS SidebarLayoutTests.DefaultSidebarRemainsExpandedAfterApplyingTheWindowPreset<br>PASS SidebarLayoutTests.ShortOverlayScrollsInsteadOfCrushingItsContents<br>PASS SidebarLayoutTests.SidebarSectionsAndHeaderSurviveFontChanges |
 | 검토 | PASS ModParkingTests.ParkingRefusesWhenUnsureAndKeepsWhatItCannotRestore |
@@ -199,14 +208,14 @@
 
 ## 측정값 (이 개발 PC에서 측정, 다른 PC 결과 아님)
 
-- 게임 구조 검사(실제 게임 파일 읽기 전용): 어셈블리 69개, 타입 10735개, 328 ms (목표 3,000 ms), 혼용 문제 0건
+- 게임 구조 검사(실제 게임 파일 읽기 전용): 어셈블리 69개, 타입 10735개, 347 ms (목표 3,000 ms), 혼용 문제 0건
 - 기본 밝게 원본 유지: subtext/window 대비 2.29:1 (4.5 기준 예외)
 - 기본 밝게 원본 유지: subtext/panel 대비 3.65:1 (4.5 기준 예외)
 - 기본 밝게 원본 유지: notice/pill 대비 3.31:1 (4.5 기준 예외)
 - 기본 밝게 원본 유지: warning/window 대비 4.00:1 (4.5 기준 예외)
 - scroll bar pictures: 72 (chat, saved rooms, participants, search; 6 themes x light/dark)
 - settings window pictures: 84 (6 themes x 2 x 7 categories), no Windows grey pixel
-- 3,000개 기록 읽기+묶기: 7 ms (목표 1,500 ms, 화면 그리기 제외), 관리 힙 증가 약 2 MB
+- 3,000개 기록 읽기+묶기: 9 ms (목표 1,500 ms, 화면 그리기 제외), 관리 힙 증가 약 2 MB
 - 내 말풍선 테스트(11pt): 실제 글자 폭 39px, 보이는 좌/우 여백 9/9px
 - 배치 계산 검사 조합 수: 1296 (너비 2 × 테마 6 × 채팅 모양 3 × 프리셋 4 × 색 위치 3 × 내 캐릭터 3)
-- 3,000개 표시(기록 읽기·묶기·배치·첫 그리기): 635 ms (목표 1,500 ms). 검사 프로세스 작업 집합 174 MB, 개인 바이트 130 MB — 검사 실행기 전체 값이라 앱 단독 값이 아님
+- 3,000개 표시(기록 읽기·묶기·배치·첫 그리기): 836 ms (목표 1,500 ms). 검사 프로세스 작업 집합 178 MB, 개인 바이트 130 MB — 검사 실행기 전체 값이라 앱 단독 값이 아님

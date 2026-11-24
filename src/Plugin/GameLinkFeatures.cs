@@ -360,9 +360,11 @@ namespace NyangTalk.GameLink
         private ChestPermit ReadPermit()
         {
             var p = Path.Combine(_dir, Exchange.PermitFile);
-            if (!File.Exists(p)) return null;
+            byte[] bytes;
+            try { bytes = ExchangeFiles.ReadAllBytes(p); }
+            catch (FileNotFoundException) { return null; }
             object o;
-            if (!Json.TryParse(Encoding.UTF8.GetString(File.ReadAllBytes(p)), out o)) return null;
+            if (!Json.TryParse(Encoding.UTF8.GetString(bytes), out o)) return null;
             var d = Json.Obj(o);
             var chest = Json.Obj(d != null && d.ContainsKey("chest") ? d["chest"] : null);
             DateTime w;
@@ -389,6 +391,7 @@ namespace NyangTalk.GameLink
             }
             var ex = _c.Get("chest.exchanging", null);
             int before = _chest.Events.Count;
+            _chest.State = "paused"; _chest.Reason = "permit";
             var permit = ReadPermit();
             _chest.Tick(DateTime.UtcNow, permit, shops, ex is bool && (bool)ex,
                 permit != null && permit.Gifts ? GiftChests() : null, MyId().ToString(), _currentMembers);

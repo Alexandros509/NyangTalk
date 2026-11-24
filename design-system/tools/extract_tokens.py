@@ -27,13 +27,17 @@ def themes():
             colours = re.findall(r'#[0-9A-Fa-f]{6}', m.group(2))
             out.setdefault(m.group(1), {})[mode] = dict(zip(ROLES, [c.upper() for c in colours]))
     warn = re.search(r'Warning \{ get \{ return Dark \? Rgb.FromHex\("(#\w{6})"\) : Rgb.FromHex\("(#\w{6})"\)', src)
+    send_fill = re.search(r'SendFill.*?Rgb.FromHex\("(#[0-9A-Fa-f]{6})"\)', src).group(1)
+    send_text = re.search(r'SendText.*?Rgb.FromHex\("(#[0-9A-Fa-f]{6})"\)', src).group(1)
     for t in out.values():
         t["light"]["warning"] = warn.group(2).upper()
         t["dark"]["warning"] = warn.group(1).upper()
     for name, modes in out.items():
         for roles in modes.values():
             roles.update(otherText=roles["text"], mineBubble=roles["soft"] if name == "peach" else roles["accent"],
-                         mineText=roles["text"] if name == "peach" else roles["accentText"])
+                         mineText=roles["text"] if name == "peach" else roles["accentText"],
+                         sendFill=send_fill if name == "peach" else roles["accent"],
+                         sendText=send_text if name == "peach" else roles["accentText"])
     return out
 
 
@@ -84,6 +88,7 @@ FIXED = [
     ("header.pill.font.scale", "11px + max(0, bodyPt - 9)", "", "src/App/Controls/IconButton.cs", "FontPixels + Math.Max(0, bodyPoints - 9)"),
     ("header.pill.height.scale", "max(28px, fontHeight + 10px)", "", "src/App/Controls/IconButton.cs", "Math.Max(Height, font.Height + 10)"),
     ("notice.surface", "soft / text", "", "src/App/MainForm.cs", "NoticeBand.BackColor = RenderStyle.C(th.Soft); NoticeLabel.ForeColor = RenderStyle.C(th.Text);"),
+    ("send.radius", "max(6, bubbleRadius) at device DPI", "", "src/App/MainForm.cs", "DisplayScale.Pixels(Math.Max(6, s.Radius), DeviceDpiSafe)"),
     ("iconButton.size", "32x30", "px", "src/App/Controls/IconButton.cs", "Size = new Size(32, 30);"),
     ("header.minHeight", 50, "px", "src/App/MainForm.cs", "Header.Height = Math.Max(50,"),
     ("header.status.size", "body -1pt, 9-10", "pt", "src/App/MainForm.cs", "Math.Max(9f, Math.Min(10f, bodyPoints - 1))"),
@@ -114,7 +119,7 @@ def contrast(a, b):
 
 
 PAIRS = [("text", "window"), ("subText", "window"), ("text", "panel"), ("subText", "panel"), ("otherText", "otherBubble"),
-         ("mineText", "mineBubble"), ("accentText", "accent"), ("notice", "datePill"), ("warning", "window"), ("warning", "panel")]
+         ("mineText", "mineBubble"), ("accentText", "accent"), ("sendText", "sendFill"), ("notice", "datePill"), ("warning", "window"), ("warning", "panel")]
 
 
 def main():

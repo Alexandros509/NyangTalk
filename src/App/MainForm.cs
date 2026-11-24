@@ -29,6 +29,7 @@ namespace NyangTalk.App
         private readonly ChatService _chat;
         private readonly PreferencesService _prefs;
         private readonly Timer _timer = new Timer();
+        private string _componentErrorKey;
 
         // layout parts
         public readonly Panel Sidebar = new Panel();
@@ -737,7 +738,9 @@ namespace NyangTalk.App
             if (s.Preset == DesignPreset.Wire) Input.BackColor = RenderStyle.C(th.Window);
             PaintSendButton();
             SendButton.FlatAppearance.BorderSize = s.Preset == DesignPreset.Wire ? 1 : 0;
+            SendButton.FlatAppearance.BorderColor = RenderStyle.C(th.Border);
             SendButton.Round = s.Preset == DesignPreset.Mobile;
+            SendButton.CornerRadius = DisplayScale.Pixels(Math.Max(6, s.Radius), DeviceDpiSafe);
             SendButton.Text = s.Preset == DesignPreset.Mobile ? "" : L("send.button");
             foreach (var ib in new[] { SearchButton, SettingsButton, RoomsButton, MoreButton, ReconnectButton, NoticeClose, SearchPrev, SearchNext, SearchCloseButton, CollapseButton, ExpandButton })
                 ib.IconColor = RenderStyle.C(th.Text);
@@ -977,8 +980,8 @@ namespace NyangTalk.App
             if (_prefsStyle == null) return;
             var th = _prefsStyle.Theme;
             float opacity = SendButton.Enabled ? 1f : HeaderPill.DisabledOpacity;
-            SendButton.BackColor = HeaderPill.Composite(ComposerArea.BackColor, RenderStyle.C(th.Accent), opacity);
-            SendButton.ForeColor = HeaderPill.Composite(ComposerArea.BackColor, RenderStyle.C(th.AccentText), opacity);
+            SendButton.BackColor = HeaderPill.Composite(ComposerArea.BackColor, RenderStyle.C(th.SendFill), opacity);
+            SendButton.ForeColor = HeaderPill.Composite(ComposerArea.BackColor, RenderStyle.C(th.SendText), opacity);
             SendButton.IconColor = SendButton.ForeColor;
         }
 
@@ -1049,7 +1052,9 @@ namespace NyangTalk.App
             MyName.Text = me != null ? DisplayName.Format(me.Name, _prefs.Aliases.Get(me.SteamId), _prefs.NameMode) : "—";
             LinkDot.ForeColor = _chat.Link == LinkState.Connected ? Color.FromArgb(0x1F, 0x9D, 0x55) : (_chat.Link == LinkState.Waiting || _chat.Link == LinkState.Disconnected ? Color.FromArgb(0xC9, 0x8A, 0x00) : Color.Gray);
             LinkDot.AccessibleName = LinkText();
-            if (st != null && !string.IsNullOrEmpty(st.Error)) ShowNotice("component-error:" + st.Error, string.Format(L("link.componentError"), st.Error));
+            var componentErrorKey = st != null && !string.IsNullOrEmpty(st.Error) ? "component-error:" + st.Error : null;
+            if (_componentErrorKey != componentErrorKey) { Notices.ClearKey(_componentErrorKey); _componentErrorKey = componentErrorKey; }
+            if (componentErrorKey != null) ShowNotice(componentErrorKey, string.Format(L("link.componentError"), st.Error));
             var broken = _chat.Areas.Broken.ToList();
             if (broken.Contains(FeatureArea.ChatSend)) ShowNotice("area:send", L("link.sendBroken"));
             else if (broken.Count > 0) ShowNotice("area:" + string.Join(",", broken), string.Format(L("link.areaBroken"), string.Join(", ", broken.Select(a => L("area." + a)))));

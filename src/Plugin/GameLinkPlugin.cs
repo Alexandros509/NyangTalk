@@ -18,7 +18,7 @@ namespace NyangTalk.GameLink
     [BepInPlugin("local.nyangtalk.gamelink", "NyangTalk GameLink", Version)]
     public sealed partial class GameLinkPlugin : BaseUnityPlugin
     {
-        public const string Version = "0.1.1";
+        public const string Version = "0.1.4";
         private ContractRuntime _c;
         private string _dir;
         private float _next;
@@ -28,7 +28,7 @@ namespace NyangTalk.GameLink
         private long _chatEvents;
         private readonly Dictionary<ulong, string> _names = new Dictionary<ulong, string>();
         private readonly HashSet<string> _currentMembers = new HashSet<string>();
-        private string _error;
+        private readonly ComponentErrors _errors = new ComponentErrors();
 
         private void Awake()
         {
@@ -38,12 +38,13 @@ namespace NyangTalk.GameLink
                 var here = Path.GetDirectoryName(Info.Location);
                 var contract = ContractFile.Parse(Encoding.UTF8.GetString(File.ReadAllBytes(Path.Combine(here, "contract.json"))));
                 _c = new ContractRuntime(contract);
+                PrepareCatalog();
                 Directory.CreateDirectory(_dir);
                 Directory.CreateDirectory(Path.Combine(_dir, Exchange.OutboxDir));
                 Directory.CreateDirectory(Path.Combine(_dir, Exchange.ResultsDir));
                 Logger.LogInfo("NyangTalk GameLink " + Version + " ready; exchange: " + _dir);
             }
-            catch (Exception ex) { _error = "init: " + ex.GetType().Name; Logger.LogError(ex); }
+            catch (Exception ex) { _errors.Set("init", ex.GetType().Name); Logger.LogError(ex); }
         }
 
         private void Update()
@@ -53,7 +54,7 @@ namespace NyangTalk.GameLink
             if (_c == null)
             {
                 // start failed: still report it so the app does not wait forever
-                Safe("status", () => { if (_dir != null) { var d = Exchange.Header(Version); d["written_utc"] = Exchange.Iso(DateTime.UtcNow); d["ready"] = false; d["lobby"] = null; d["can_send"] = false; d["error"] = _error; d["areas"] = new Dictionary<string, object>(); Directory.CreateDirectory(_dir); WriteAtomic(Exchange.StatusFile, Json.Write(d)); } });
+                Safe("status", () => { if (_dir != null) { var d = Exchange.Header(Version); d["written_utc"] = Exchange.Iso(DateTime.UtcNow); d["ready"] = false; d["lobby"] = null; d["can_send"] = false; d["error"] = _errors.Error; d["areas"] = new Dictionary<string, object>(); Directory.CreateDirectory(_dir); WriteAtomic(Exchange.StatusFile, Json.Write(d)); } });
                 return;
             }
             Safe("resolve", () => { if (_c.Areas.Count == 0 || !_hooked) _c.ResolveAll(); });
@@ -78,8 +79,7 @@ namespace NyangTalk.GameLink
 
         private void Safe(string what, Action a)
         {
-            try { a(); }
-            catch (Exception ex) { _error = what + ": " + ex.GetType().Name; Logger.LogWarning(what + " failed: " + ex.Message); }
+            _errors.Run(what, a, ex => Logger.LogWarning(what + " failed: " + ex.Message));
         }
 
         // ---------------------------------------------------------------- receive
@@ -117,14 +117,12 @@ namespace NyangTalk.GameLink
         // Called by the game's bus on the main thread. Must never throw into the game.
         private void OnChat<TId>(TId sender, string text)
         {
-            try { Record(IdOf(sender), text ?? "", "text", null); }
-            catch (Exception ex) { _error = "chat-write: " + ex.GetType().Name; Logger.LogWarning("chat: " + ex.Message); }
+            Safe("chat-write", () => Record(IdOf(sender), text ?? "", "text", null));
         }
 
         private void OnEmote<TId>(TId sender, int emote)
         {
-            try { Record(IdOf(sender), "emote:" + emote, "emote", emote.ToString()); RequestEmotePicture(emote); }
-            catch (Exception ex) { _error = "emote-write: " + ex.GetType().Name; Logger.LogWarning("emote: " + ex.Message); }
+            Safe("emote-write", () => { Record(IdOf(sender), "emote:" + emote, "emote", emote.ToString()); RequestEmotePicture(emote); });
         }
 
         private void Record(ulong sender, string body, string kind, string emoteId)
@@ -235,18 +233,26 @@ namespace NyangTalk.GameLink
             return c != null && c.gameObject.scene.isLoaded;
         }
 
-        private int CharLimit()
+        private Component MainSpeech()
         {
             var t = _c.TypeOf("speech.type");
-            if (t == null || !_c.Has("speech.maxChars")) return 0;
+            if (t == null || !_c.Has("speech.isMain")) return null;
             foreach (var o in Resources.FindObjectsOfTypeAll(t))
             {
                 if (!InLoadedScene(o)) continue;
-                var main = _c.Has("speech.isMain") ? _c.Get("speech.isMain", o) : null;
-                if (main is bool && !(bool)main) continue;
-                var v = _c.Get("speech.maxChars", o);
-                if (v is int && (int)v > 0) return (int)v;
+                var main = _c.Get("speech.isMain", o);
+                var component = (Component)o;
+                if (main is bool && (bool)main && component.gameObject.activeInHierarchy) return component;
             }
+            return null;
+        }
+
+        private int CharLimit()
+        {
+            var speech = MainSpeech();
+            if (speech == null || !_c.Has("speech.maxChars")) return 0;
+            var value = _c.Get("speech.maxChars", speech);
+            if (value is int && (int)value > 0) return (int)value;
             return 0;
         }
 
@@ -268,13 +274,13 @@ namespace NyangTalk.GameLink
             }
             else d["lobby"] = null;
             bool sendOk = _c.Areas.ContainsKey("ChatSend") && _c.Areas["ChatSend"];
-            d["can_send"] = sendOk && lobby != null;
+            d["can_send"] = sendOk && lobby != null && MainSpeech() != null;
             d["char_limit"] = (long)CharLimit();
             var me = MyId();
             d["my_steam_id"] = me == 0 ? null : me.ToString();
             d["hooked"] = _hooked;
             d["chat_events"] = _chatEvents;
-            d["error"] = _error;
+            d["error"] = _errors.Error;
             var areas = new Dictionary<string, object>();
             foreach (var kv in _c.Areas) areas[kv.Key] = kv.Value;
             if (!_hooked) areas["ChatReceive"] = false; // resolved but not yet listening: not "working"
@@ -291,7 +297,7 @@ namespace NyangTalk.GameLink
         {
             var p = Path.Combine(_dir, Exchange.SessionKeyFile);
             if (!File.Exists(p)) return null;
-            try { return Convert.FromBase64String(Encoding.UTF8.GetString(File.ReadAllBytes(p)).Trim()); } catch (FormatException) { return null; }
+            try { return Convert.FromBase64String(Encoding.UTF8.GetString(ExchangeFiles.ReadAllBytes(p)).Trim()); } catch (FormatException) { return null; }
         }
 
         private void ProcessOutbox()
@@ -313,17 +319,22 @@ namespace NyangTalk.GameLink
                 int limit = CharLimit();
                 if (_lobbyId == null || Json.Str(req, "lobby_id") != _lobbyId) { result = "rejected"; reason = "not-in-lobby"; }
                 else if (limit > 0 && text.Length > limit) { result = "rejected"; reason = "too-long"; }
-                else if (!_c.Has("mp.sendSpeech")) { result = "rejected"; reason = "send-unsupported"; }
+                else if (!_c.Has("speech.send")) { result = "rejected"; reason = "send-unsupported"; }
                 else
                 {
                     try
                     {
-                        // 50-SPEC 7장: ask the game's own filter first; the game's speech path is still called unchanged
-                        bool punctuation = false;
-                        bool? blocked = null;
-                        try { blocked = FilterBlocks(text, out punctuation); } catch (Exception fex) { Logger.LogWarning("filter check: " + fex.Message); }
-                        if (!FilteredSend.Run(blocked, () => _c.Call("mp.sendSpeech", null, text)))
-                        { result = "filtered"; reason = punctuation ? "punctuation" : "filter"; }
+                        var speech = MainSpeech();
+                        if (speech == null) { result = "rejected"; reason = "speech-not-ready"; }
+                        else
+                        {
+                            // Use the game's complete local path: filter, network send and my own cat's bubble.
+                            bool punctuation = false;
+                            bool? blocked = null;
+                            try { blocked = FilterBlocks(text, out punctuation); } catch (Exception fex) { Logger.LogWarning("filter check: " + fex.Message); }
+                            if (!FilteredSend.Run(blocked, () => _c.Call("speech.send", speech, text)))
+                            { result = "filtered"; reason = punctuation ? "punctuation" : "filter"; }
+                        }
                     }
                     catch (Exception ex) { result = "rejected"; reason = ex.GetType().Name; }
                 }

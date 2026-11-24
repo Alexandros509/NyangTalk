@@ -161,8 +161,8 @@ namespace NyangTalk.Shared
                 if (_attempted.Contains(s.Kind)) continue;                                           // same ready state: never call twice
                 DateTime? since;
                 if (!_readySince.TryGetValue(s.Kind, out since) || since == null) _readySince[s.Kind] = since = nowUtc;
-                if (!s.CanGet) continue;
                 if (!s.CanAfford) { State = "paused"; Reason = "points"; continue; }
+                if (!s.CanGet) continue;
                 if (_calls.Count >= permit.MaxPerHour) { State = "paused"; Reason = "limit"; continue; }
                 if (busy) { State = "opening"; Reason = "busy"; return; }                          // one at a time (step 4)
                 if (nowUtc - since.Value < TimeSpan.FromSeconds(permit.DelaySeconds)) continue;     // user delay (step 3)

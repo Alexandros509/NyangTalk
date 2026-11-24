@@ -2,7 +2,7 @@
 
 값은 손으로 적지 않고 `tools/extract_tokens.py`가 NyangTalk 코드에서 뽑았다. 정본은 [tokens/tokens.json](tokens/tokens.json)(각 값의 출처 `파일:줄` 포함), CSS로는 [tokens/tokens.css](tokens/tokens.css).
 
-## 색 역할 (테마마다 12세트, 각 17개)
+## 색 역할 (6개 테마 × 밝게·어둡게, 각 19개)
 
 | 역할 | 쓰는 곳 | CSS 변수 |
 |---|---|---|
@@ -13,6 +13,7 @@
 | otherBubble / otherText | 다른 사람 말풍선, **입력 칸 바탕/글자** | `--nt-other-bubble` / `--nt-other-text` |
 | mineBubble / mineText | 내 말풍선 | `--nt-mine-bubble` / `--nt-mine-text` |
 | accent / accentText | 선택된 분류, 체크 표시, 슬라이더, 링크 | `--nt-accent` / `--nt-accent-text` |
+| sendFill / sendText | 보내기 버튼. 복숭아는 지정된 얼굴 바탕색 #DF557C / 짙은 글자 #211417 | `--nt-send-fill` / `--nt-send-text` |
 | border | 테두리, 구분선 | `--nt-border` |
 | notice | 날짜 알약의 글자 | `--nt-notice` |
 | warning | 실패·경고·위험 버튼 | `--nt-warning` |

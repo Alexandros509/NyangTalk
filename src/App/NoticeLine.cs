@@ -36,6 +36,15 @@ namespace NyangTalk.App
 
         public void Clear(NoticeKind kind) { if (_slots.Remove(kind)) Raise(); }
 
+        public void ClearKey(string key)
+        {
+            if (key == null) return;
+            bool changed = _dismissed.Remove(key);
+            foreach (var kind in _slots.Where(pair => pair.Value.Key == key).Select(pair => pair.Key).ToArray())
+                changed |= _slots.Remove(kind);
+            if (changed) Raise();
+        }
+
         public void Dismiss(string key) { if (key != null && _dismissed.Add(key)) Raise(); }
 
         public bool IsDismissed(string key) { return _dismissed.Contains(key); }

@@ -232,39 +232,68 @@ namespace NyangTalk.App
             if (!_host.Prefs.Settings.GetBool("auto.chest") && !_host.Prefs.Settings.GetBool("auto.gifts")) return null;
             var L = (Func<string, string>)_host.Prefs.L;
             var st = _host.Chat.Status;
+            var paused = AutomationPauseReason();
             string text;
             if (!_host.Chat.Areas.IsAvailable(FeatureArea.Chest) || (st != null && st.ChestState == "unsupported")) text = L("auto.status.Unsupported");
-            else if (_host.Chat.Link != LinkState.Connected || st == null || st.ChestState == null) text = string.Format(L("auto.status.Paused"), L("link.disconnected"));
+            else if (paused != null) text = string.Format(L("auto.status.Paused"), paused);
+            else if (st.ChestState == null) text = string.Format(L("auto.status.Paused"), L("auto.reason.permit"));
             else switch (st.ChestState)
             {
                 case "waiting": text = L("auto.status.Waiting"); break;
                 case "opening": text = L("auto.status.Opening"); break;
                 case "paused": text = string.Format(L("auto.status.Paused"), st.ChestReason == null ? "?" : L("auto.reason." + st.ChestReason)); break;
-                default: text = L("auto.status.Off"); break;
+                default: text = string.Format(L("auto.status.Paused"), L("auto.reason.permit")); break;
             }
             return L("automation.activeTitle") + " · " + text;
         }
 
         private DateTime _lastPermit = DateTime.MinValue;
         private bool _permitOn;
+        private string _lastPermitContent;
+
+        private bool AutomationConnected()
+        {
+            var st = _host.Chat.Status;
+            return _host.Chat.Link == LinkState.Connected && st != null && st.Ready && !string.IsNullOrEmpty(st.GameSession);
+        }
+
+        private bool AutomationConsented(string key)
+        {
+            return ChestPolicy.HasValidConsent(LoadConsent(key == "auto.gifts" ? "automation-consent-gifts" : "automation-consent"), DeviceIdIfAny());
+        }
+
+        private string AutomationPauseReason(string key = null)
+        {
+            if (!AutomationConnected()) return L("link.disconnected");
+            if (key == null)
+            {
+                // Either enabled feature may be active; a blocked gift switch must not hide my own chest's report.
+                var own = _host.Prefs.Settings.GetBool("auto.chest") ? AutomationPauseReason("auto.chest") : null;
+                var gifts = _host.Prefs.Settings.GetBool("auto.gifts") ? AutomationPauseReason("auto.gifts") : null;
+                if ((_host.Prefs.Settings.GetBool("auto.chest") && own == null) || (_host.Prefs.Settings.GetBool("auto.gifts") && gifts == null)) return null;
+                return own ?? gifts;
+            }
+            if (!AutomationConsented(key)) return L("auto.reason.permit");
+            if (key == "auto.gifts" && _host.Chat.Status.Lobby == null) return L("room.noLobby");
+            return null;
+        }
 
         /// <summary>
-        /// 80-SPEC 1장: the game component may open chests only while a fresh permit (≤ 10 s) exists for this lobby and game
-        /// run. Written every 2 s while the switch is on, consent is valid and the game is connected; otherwise switched off.
+        /// Own chests need a fresh permit for this game run, including outside a lobby. Gifts additionally need a lobby.
+        /// A null lobby keeps the existing component's session spelling (":" + game run). Any change revokes or rebinds immediately.
         /// </summary>
         public void PermitTick()
         {
             var now = _host.Clock.UtcNow;
             var st = _host.Chat.Status;
-            bool connected = _host.Chat.Link == LinkState.Connected && st != null && st.Lobby != null && st.GameSession != null;
-            bool own = _host.Prefs.Settings.GetBool("auto.chest") && ChestPolicy.HasValidConsent(LoadConsent(), DeviceIdIfAny()) && connected;
+            bool connected = AutomationConnected() && _host.Chat.Areas.IsAvailable(FeatureArea.Chest) && st.ChestState != "unsupported";
+            bool own = _host.Prefs.Settings.GetBool("auto.chest") && AutomationConsented("auto.chest") && connected;
             // 80-SPEC 2장: separate switch and separate consent ("my points are spent, they get it")
-            bool gifts = _host.Prefs.Settings.GetBool("auto.gifts") && ChestPolicy.HasValidConsent(LoadConsent("automation-consent-gifts"), DeviceIdIfAny()) && connected;
+            bool gifts = _host.Prefs.Settings.GetBool("auto.gifts") && AutomationConsented("auto.gifts") && connected && st.Lobby != null;
             bool want = own || gifts;
             foreach (var row in _host.Exchange.ReadChestLog())
                 Chest.Record(row.Member == null ? row.Kind : string.Format(_host.Prefs.L("auto.giftLog"), NameOf(row.Member)) + " · " + row.Kind, row.Called, row.Reason, row.TimeUtc);
             if (!want && !_permitOn) return;
-            if (want && now - _lastPermit < TimeSpan.FromSeconds(2)) return;
             var kinds = new List<object>();
             var sel = _host.Prefs.Settings.Get("auto.chestTypes");
             if (sel != "emote") kinds.Add("Cosmetic");
@@ -274,11 +303,15 @@ namespace NyangTalk.App
                 { "enabled", own }, { "gifts", gifts }, { "kinds", kinds }, { "delay", (long)_host.Prefs.Settings.GetInt("auto.chestDelay") },
                 { "max_per_hour", (long)_host.Prefs.Settings.GetInt("auto.chestMaxPerHour") }
             };
+            var permit = new Dictionary<string, object> { { "chest", chest }, { "session", want ? (st.Lobby == null ? "" : st.Lobby.LobbyId) + ":" + st.GameSession : null } };
+            var content = Json.Write(permit);
+            if (want && content == _lastPermitContent && now - _lastPermit < TimeSpan.FromSeconds(2)) return;
             try
             {
-                _host.Exchange.WritePermit(new Dictionary<string, object> { { "chest", chest }, { "session", want ? st.Lobby.LobbyId + ":" + st.GameSession : null } }, now);
+                _host.Exchange.WritePermit(permit, now);
                 _permitOn = want;
                 _lastPermit = now;
+                _lastPermitContent = content;
             }
             catch (IOException ex) { _host.AddLog("permit: " + ex.Message); }
         }
@@ -860,13 +893,15 @@ namespace NyangTalk.App
             if (!_host.Prefs.Settings.GetBool(key)) return L("auto.status.Off");
             var st = _host.Chat.Status;
             if (!_host.Chat.Areas.IsAvailable(FeatureArea.Chest) || (st != null && st.ChestState == "unsupported")) return L("auto.status.Unsupported");
-            if (_host.Chat.Link != LinkState.Connected || st == null || st.ChestState == null) return string.Format(L("auto.status.Paused"), L("link.disconnected"));
+            var paused = AutomationPauseReason(key);
+            if (paused != null) return string.Format(L("auto.status.Paused"), paused);
+            if (st.ChestState == null) return string.Format(L("auto.status.Paused"), L("auto.reason.permit"));
             switch (st.ChestState)
             {
                 case "waiting": return L("auto.status.Waiting");
                 case "opening": return L("auto.status.Opening");
                 case "paused": return string.Format(L("auto.status.Paused"), ReasonText(st.ChestReason));
-                default: return L("auto.status.Off");
+                default: return string.Format(L("auto.status.Paused"), L("auto.reason.permit"));
             }
         }
 
@@ -1031,7 +1066,7 @@ namespace NyangTalk.App
             return Payload.Load(typeof(LinkServices).Assembly, Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "payload"), GameLinkVersion);
         }
 
-        public const string GameLinkVersion = "0.1.1";
+        public const string GameLinkVersion = "0.1.4";
 
         public string Describe(InstallResult r)
         {

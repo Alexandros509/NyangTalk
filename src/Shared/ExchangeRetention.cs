@@ -57,7 +57,7 @@ namespace NyangTalk.Shared
             var p = Path.Combine(exchangeDir, SettingsFile);
             if (!File.Exists(p)) return fallback;
             object o;
-            if (!Json.TryParse(Encoding.UTF8.GetString(File.ReadAllBytes(p)), out o)) return fallback;
+            if (!Json.TryParse(Encoding.UTF8.GetString(ExchangeFiles.ReadAllBytes(p)), out o)) return fallback;
             return (int)Json.Long(Json.Obj(o), "retention_days", fallback);
         }
     }

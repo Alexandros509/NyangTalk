@@ -214,7 +214,7 @@ namespace NyangTalk.App.Rendering
                 case OutgoingState.Sending: status = s.L("send.sending"); break;
                 case OutgoingState.Delivered: status = s.L("send.delivered"); break;
                 case OutgoingState.Unconfirmed: status = s.L("send.unconfirmed"); break;
-                case OutgoingState.Rejected: status = string.Format(s.L("send.rejected"), o.Reason ?? ""); break;
+                case OutgoingState.Rejected: status = string.Format(s.L("send.rejected"), o.Reason == "speech-not-ready" ? s.L("send.speechNotReady") : o.Reason ?? ""); break;
                 case OutgoingState.NotDelivered: status = s.L("send.notDelivered") + " · " + s.L("send.filtered") + (o.PunctuationHint ? " " + s.L("send.filteredPunct") : ""); break;
                 default: status = s.L("send.failed"); break;
             }

@@ -17,6 +17,9 @@ namespace NyangTalk.Domain.Preferences
         public Rgb MineText;
         public Rgb Accent;       // buttons
         public Rgb AccentText;
+        // The peach send action uses the face background supplied by the user, with readable dark lettering.
+        public Rgb SendFill { get { return Id == "peach" ? Rgb.FromHex("#DF557C") : Accent; } }
+        public Rgb SendText { get { return Id == "peach" ? Rgb.FromHex("#211417") : AccentText; } }
         public Rgb Border;
         public Rgb Notice;       // date separator and notice text
         public Rgb Soft, MidText, FaintText, DatePill;
@@ -67,7 +70,7 @@ namespace NyangTalk.Domain.Preferences
                 Id = id, Window = Rgb.FromHex(window), Panel = Rgb.FromHex(panel), OtherBubble = Rgb.FromHex(bubble),
                 OtherText = Rgb.FromHex(text), Soft = Rgb.FromHex(soft), Border = Rgb.FromHex(border), Text = Rgb.FromHex(text),
                 MidText = Rgb.FromHex(mid), SubText = Rgb.FromHex(sub), FaintText = Rgb.FromHex(faint), DatePill = Rgb.FromHex(pill),
-                // User revision: the peach own bubble uses the soft surface, while controls keep the reference accent.
+                // The peach own bubble uses the soft surface; accent and send action have separate roles.
                 Notice = Rgb.FromHex(pillText), MineBubble = Rgb.FromHex(id == "peach" ? soft : accent), MineText = Rgb.FromHex(id == "peach" ? text : accentText),
                 Accent = Rgb.FromHex(accent), AccentText = Rgb.FromHex(accentText)
             };
@@ -83,6 +86,7 @@ namespace NyangTalk.Domain.Preferences
             yield return new KeyValuePair<string, Rgb[]>("other", new[] { OtherText, OtherBubble });
             yield return new KeyValuePair<string, Rgb[]>("mine", new[] { MineText, MineBubble });
             yield return new KeyValuePair<string, Rgb[]>("accent", new[] { AccentText, Accent });
+            yield return new KeyValuePair<string, Rgb[]>("send", new[] { SendText, SendFill });
             yield return new KeyValuePair<string, Rgb[]>("notice/pill", new[] { Notice, DatePill });
             yield return new KeyValuePair<string, Rgb[]>("warning/window", new[] { Warning, Window });
             yield return new KeyValuePair<string, Rgb[]>("warning/panel", new[] { Warning, Panel });
