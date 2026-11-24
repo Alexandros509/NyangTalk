@@ -87,7 +87,7 @@ namespace NyangTalk.App.Rendering
             {
                 if (!ShowCats) return 0;
                 if (Shape == ChatShape.Compact || CatCompact) return 20;
-                switch (CatSize) { case "small": return 24; case "large": return 44; default: return 32; }
+                switch (CatSize) { case "small": return 44; case "large": return 80; default: return 60; }
             }
         }
         public int Radius

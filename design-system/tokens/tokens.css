@@ -289,6 +289,10 @@
   --nt-header-pill-padding-narrow: 6px;
   --nt-header-pill-gap-wide: 6px;
   --nt-header-pill-gap-narrow: 4px;
+  --nt-character-size-small: 44px;
+  --nt-character-size-normal: 60px;
+  --nt-character-size-large: 80px;
+  --nt-character-size-compact: 20px;
   --nt-header-minHeight: 50px;
   --nt-header-title-minWidth: 110px;
 }
