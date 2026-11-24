@@ -80,6 +80,7 @@ namespace NyangTalk.App.Rendering
         public Func<string, string> AliasOf = id => null;
         /// <summary>Request ids of "확인 못 함" messages whose "다시 보내기" was pressed once and now wait for "그래도 보내기".</summary>
         public Func<string, bool> AskingResend = id => false;
+        public Func<string, bool> AskingRestore = id => false;
         /// <summary>Emote id → picture file and name from the game component (null: unknown).</summary>
         public Func<string, NyangTalk.Application.EmoteInfo> EmoteOf = id => null;
         public Func<string, bool> ImageExists = f => f != null && System.IO.File.Exists(f);
@@ -214,8 +215,9 @@ namespace NyangTalk.App.Rendering
                 case OutgoingState.Sending: status = s.L("send.sending"); break;
                 case OutgoingState.Delivered: status = s.L("send.delivered"); break;
                 case OutgoingState.Unconfirmed: status = s.L("send.unconfirmed"); break;
-                case OutgoingState.Rejected: status = string.Format(s.L("send.rejected"), o.Reason == "speech-not-ready" ? s.L("send.speechNotReady") : o.Reason ?? ""); break;
-                case OutgoingState.NotDelivered: status = s.L("send.notDelivered") + " · " + s.L("send.filtered") + (o.PunctuationHint ? " " + s.L("send.filteredPunct") : ""); break;
+                case OutgoingState.Rejected: status = string.Format(s.L("send.rejected"), RejectReason(o.Reason, s)); break;
+                case OutgoingState.NotDelivered: status = s.L("send.notDelivered") + " · " + s.L("send.filtered")
+                    + (o.SymbolsOnlyHint ? " " + s.L("send.filteredSymbols") : o.PunctuationHint ? " " + s.L("send.filteredPunct") : ""); break;
                 default: status = s.L("send.failed"); break;
             }
             var f = _m.Font(s, false, true);
@@ -228,25 +230,35 @@ namespace NyangTalk.App.Rendering
             if (o.NeedsAction)
             {
                 // 95-SPEC 2.3: "확인 못 함" asks once more right under the message (no pop-up) before sending again
-                bool asking = o.State == OutgoingState.Unconfirmed && AskingResend(o.RequestId);
-                string[] buttons = asking ? new[] { "send.resendCancel", "send.resendAnyway" } : new[] { "send.delete", "send.retry" };
-                if (asking)
+                bool restoring = AskingRestore(o.RequestId);
+                bool asking = !restoring && o.State == OutgoingState.Unconfirmed && AskingResend(o.RequestId);
+                string[] buttons = restoring ? new[] { "send.restoreCancel", "send.restoreReplace" }
+                    : asking ? new[] { "send.resendCancel", "send.resendAnyway" }
+                    : o.State == OutgoingState.NotDelivered ? new[] { "send.delete", "send.restore" }
+                    : new[] { "send.delete", "send.retry", "send.restore" };
+                if (asking || restoring)
                 {
-                    var ask = s.L("send.resendAsk");
+                    var ask = s.L(restoring ? "send.restoreConfirm" : "send.resendAsk");
                     var qs = _m.Measure(ask, f, width - 2 * s.Gutter);
                     r.Parts.Add(new Part { Kind = PartKind.Status, Rect = new Rectangle(Math.Max(s.Gutter, bubble.Right - qs.Width), y, qs.Width, qs.Height), Text = ask, Fore = RenderStyle.C(s.Theme.Text), Small = true });
                     y += qs.Height + 2;
                 }
-                int x = bubble.Right;
+                int right = Math.Min(width - s.Gutter, Math.Max(bubble.Right, s.Gutter + 40));
+                int x = right, lineHeight = 0;
                 foreach (var b in buttons)
                 {
                     var text = s.L(b);
-                    var bs = _m.Measure(text, f, width);
-                    x -= bs.Width + 14;
-                    r.Parts.Add(new Part { Kind = PartKind.Button, Rect = new Rectangle(Math.Max(s.Gutter, x), y, bs.Width + 12, bs.Height + 6), Text = text, Action = ActionOf(b), Fore = RenderStyle.C(s.Theme.AccentText), Back = RenderStyle.C(s.Theme.Accent), Small = true });
+                    var bs = _m.Measure(text, f, Math.Max(20, right - s.Gutter - 12));
+                    int buttonWidth = bs.Width + 12;
+                    if (x - buttonWidth < s.Gutter && lineHeight > 0) { y += lineHeight + 6; x = right; lineHeight = 0; }
+                    x -= buttonWidth;
+                    bool primary = b == "send.restore" || b == "send.restoreReplace" || b == "send.resendAnyway";
+                    r.Parts.Add(new Part { Kind = PartKind.Button, Rect = new Rectangle(Math.Max(s.Gutter, x), y, buttonWidth, bs.Height + 6), Text = text, Action = ActionOf(b),
+                        Fore = RenderStyle.C(primary ? s.Theme.SendText : s.Theme.Text), Back = RenderStyle.C(primary ? s.Theme.SendFill : s.Theme.OtherBubble), Small = true });
+                    lineHeight = Math.Max(lineHeight, bs.Height + 6);
                     x -= 6;
                 }
-                y += f.Height + 8;
+                y += lineHeight + 2;
             }
             r.Height = y + s.Pad;
             return r;
@@ -257,9 +269,24 @@ namespace NyangTalk.App.Rendering
             switch (key)
             {
                 case "send.retry": return "retry";
+                case "send.restore": return "restore";
+                case "send.restoreReplace": return "restoreConfirm";
+                case "send.restoreCancel": return "restoreCancel";
                 case "send.resendAnyway": return "resendConfirm";
                 case "send.resendCancel": return "resendCancel";
                 default: return "delete";
+            }
+        }
+
+        private static string RejectReason(string reason, RenderStyle style)
+        {
+            switch (reason)
+            {
+                case "speech-not-ready": return style.L("send.speechNotReady");
+                case "too-long": return style.L("send.blocked.TooLong");
+                case "not-in-lobby": return style.L("send.notInLobby");
+                case "send-unsupported": return style.L("link.sendBroken");
+                default: return style.L("send.gameRejected");
             }
         }
 

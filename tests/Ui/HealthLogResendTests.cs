@@ -33,7 +33,7 @@ namespace NyangTalk.Tests
                 for (int i = 0; i < 11; i++) { rig.Clock.Now = rig.Clock.Now.AddSeconds(1); rig.Game.WriteStatus(rig.Clock.Now); f.Tick(); }
                 var row = OutRow(rig, "결과 모르는 글");
                 A.Eq(OutgoingState.Unconfirmed, row.Outgoing.State, "확인 못 함");
-                A.Eq("delete,retry", string.Join(",", Actions(row)), "다시 보내기 / 지우기");
+                A.Eq("delete,restore,retry", string.Join(",", Actions(row)), "다시 보내기 / 원문 되살리기 / 지우기");
                 var id = row.Outgoing.RequestId;
                 int before = Requests(rig);
 
@@ -48,7 +48,7 @@ namespace NyangTalk.Tests
                 f.OnChatAction("resendCancel", row);
                 row = OutRow(rig, "결과 모르는 글");
                 A.Eq(OutgoingState.Unconfirmed, row.Outgoing.State, "cancel keeps the state");
-                A.Eq("delete,retry", string.Join(",", Actions(row)), "back to 다시 보내기 / 지우기");
+                A.Eq("delete,restore,retry", string.Join(",", Actions(row)), "back to 다시 보내기 / 원문 되살리기 / 지우기");
                 A.Eq(before, Requests(rig), "cancel sends nothing");
 
                 f.OnChatAction("retry", row);

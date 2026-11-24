@@ -28,6 +28,7 @@ namespace NyangTalk.App
         public readonly GameLinkService Check;
         public readonly Installer Installer;
         public readonly ChestPolicy Chest = new ChestPolicy();
+        public Func<ShortcutPlace, string> CreateShortcut;
         public readonly GameLocationService Location;
         public string Status = "";
         /// <summary>The game process for "다시 설치" (closing and restarting it); a fake in checks.</summary>
@@ -49,6 +50,7 @@ namespace NyangTalk.App
         public LinkServices(AppHost host, MainForm form)
         {
             _host = host; _form = form;
+            CreateShortcut = place => Shortcuts.Create(host.DataRoot, System.Windows.Forms.Application.ExecutablePath, Shortcuts.Folder(place));
             Check = new GameLinkService(host.Docs, ContractJson(), Environment.GetFolderPath(Environment.SpecialFolder.UserProfile));
             Installer = new Installer(host.Docs, Path.Combine(host.DataRoot, "install"));
             Installer.Precheck = g => GameCheck.Run(g, DoorstopOverride(g), ContractJson(), null);
@@ -378,6 +380,41 @@ namespace NyangTalk.App
             return false;
         }
 
+        private void ShortcutOptions(SettingsPage page)
+        {
+            page.Heading(L("shortcut.title"));
+            page.Note(L("shortcut.note"), false);
+            var start = new ThemedCheck { Text = L("shortcut.startMenu"), Name = "shortcut-start", AccessibleName = L("shortcut.startMenu") };
+            var desktop = new ThemedCheck { Text = L("shortcut.desktop"), Name = "shortcut-desktop", AccessibleName = L("shortcut.desktop") };
+            page.Custom(start, w => start.HeightFor(w));
+            page.Custom(desktop, w => desktop.HeightFor(w));
+            Label result = null;
+            var create = page.Button(L("shortcut.create"), () =>
+            {
+                var lines = new List<string>(); bool failed = false;
+                foreach (var place in new[] { ShortcutPlace.StartMenu, ShortcutPlace.Desktop })
+                {
+                    if (!(place == ShortcutPlace.StartMenu ? start.Checked : desktop.Checked)) continue;
+                    var name = L(place == ShortcutPlace.StartMenu ? "shortcut.startMenu" : "shortcut.desktop");
+                    try { CreateShortcut(place); lines.Add(string.Format(L("shortcut.created"), name)); }
+                    catch (Exception ex)
+                    {
+                        if (!(ex is IOException || ex is UnauthorizedAccessException || ex is System.Runtime.InteropServices.COMException
+                            || ex is System.Security.SecurityException || ex is ArgumentException)) throw;
+                        failed = true; lines.Add(string.Format(L("shortcut.failed"), name, ex.Message));
+                    }
+                }
+                result.Text = string.Join("\n", lines); page.SetNoteWarn(result, failed); page.Relayout();
+            }, "shortcut.note");
+            create.Name = "shortcut-create";
+            Action update = () => create.Enabled = (start.Checked || desktop.Checked) && _host.Demo == null;
+            start.CheckedChanged += (s, e) => update(); desktop.CheckedChanged += (s, e) => update();
+            update();
+            page.Buttons(create);
+            result = page.Note(_host.Demo == null ? "" : L("shortcut.demo"), false);
+            result.Name = "shortcut-result";
+        }
+
         internal string L(string k) { return _host.Prefs.L(k); }
 
         private static bool Failed(InstallResult r) { return r.Outcome != InstallOutcome.Done && r.Outcome != InstallOutcome.NothingToDo; }
@@ -415,6 +452,7 @@ namespace NyangTalk.App
             dailyResult = page.Note("", false);
 
             page.Group("link", "group.autoStart");
+            ShortcutOptions(page);
 
             page.Heading(L("group.linkManage"));
             var manageResult = (Label)null;

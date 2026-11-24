@@ -67,6 +67,43 @@ namespace NyangTalk.App
     /// </summary>
     public static class Placement
     {
+        /// <summary>Prefer a full-size adjacent window, then a smaller adjacent one, then the least overlap.</summary>
+        public static Rectangle SettingsBounds(Rectangle owner, Size desired, Size minimum, Rectangle work, int gap)
+        {
+            var size = new Size(Math.Min(desired.Width, work.Width), Math.Min(desired.Height, work.Height));
+            int y = Math.Max(work.Top, Math.Min(owner.Top, work.Bottom - size.Height));
+            int x = Math.Max(work.Left, Math.Min(owner.Left, work.Right - size.Width));
+            var full = new[] { new Rectangle(owner.Right + gap, y, size.Width, size.Height),
+                new Rectangle(owner.Left - gap - size.Width, y, size.Width, size.Height),
+                new Rectangle(x, owner.Bottom + gap, size.Width, size.Height),
+                new Rectangle(x, owner.Top - gap - size.Height, size.Width, size.Height) };
+            foreach (var r in full) if (work.Contains(r)) return r;
+            int right = work.Right - owner.Right - gap, left = owner.Left - work.Left - gap;
+            if (right >= minimum.Width) { var r = new Rectangle(owner.Right + gap, y, Math.Min(size.Width, right), size.Height); if (work.Contains(r)) return r; }
+            if (left >= minimum.Width) { var r = new Rectangle(work.Left + Math.Max(0, left - size.Width), y, Math.Min(size.Width, left), size.Height); if (work.Contains(r)) return r; }
+            int below = work.Bottom - owner.Bottom - gap, above = owner.Top - work.Top - gap;
+            if (below >= minimum.Height) { var r = new Rectangle(x, owner.Bottom + gap, size.Width, Math.Min(size.Height, below)); if (work.Contains(r)) return r; }
+            if (above >= minimum.Height) { var r = new Rectangle(x, work.Top + Math.Max(0, above - size.Height), size.Width, Math.Min(size.Height, above)); if (work.Contains(r)) return r; }
+            var candidates = full.Concat(new[] { new Rectangle(work.Left, work.Top, size.Width, size.Height),
+                new Rectangle(work.Right - size.Width, work.Top, size.Width, size.Height),
+                new Rectangle(work.Left, work.Bottom - size.Height, size.Width, size.Height),
+                new Rectangle(work.Right - size.Width, work.Bottom - size.Height, size.Width, size.Height) })
+                .Select(r => new Rectangle(Math.Max(work.Left, Math.Min(r.X, work.Right - size.Width)),
+                    Math.Max(work.Top, Math.Min(r.Y, work.Bottom - size.Height)), size.Width, size.Height));
+            return candidates.OrderBy(r => { var overlap = Rectangle.Intersect(owner, r); return (long)Math.Max(0, overlap.Width) * Math.Max(0, overlap.Height); })
+                .ThenBy(r => Math.Abs(r.Top - owner.Top)).First();
+        }
+
+        public static void Beside(Form settings, Form owner)
+        {
+            if (owner == null || owner.WindowState == FormWindowState.Minimized) return;
+            var work = Screen.FromControl(owner).WorkingArea;
+            settings.StartPosition = FormStartPosition.Manual;
+            settings.MinimumSize = new Size(Math.Min(settings.MinimumSize.Width, work.Width), Math.Min(settings.MinimumSize.Height, work.Height));
+            settings.Bounds = SettingsBounds(owner.Bounds, settings.Size, settings.MinimumSize, work,
+                Platform.DisplayScale.Pixels(12, Platform.DisplayScale.Dpi(owner)));
+        }
+
         public static Point CenterOn(Rectangle owner, Size size, Rectangle workArea)
         {
             int x = owner.Left + (owner.Width - size.Width) / 2, y = owner.Top + (owner.Height - size.Height) / 2;

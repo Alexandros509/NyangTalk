@@ -767,6 +767,7 @@ namespace NyangTalk.App
             Chat.Style = s;
             Chat.Layout2.AliasOf = id => _prefs.Aliases.Get(id);
             Chat.Layout2.AskingResend = id => _askResend.Contains(id);
+            Chat.Layout2.AskingRestore = id => _restoreDrafts.ContainsKey(id);
             Faces.Style = s; Faces.AliasOf = id => _prefs.Aliases.Get(id);
             HintLabel.Text = L("send.hint");
             StorageLabel.Text = L("send.storage");
@@ -1281,6 +1282,7 @@ namespace NyangTalk.App
         // ---------------------------------------------------------------- actions
 
         private readonly HashSet<string> _askResend = new HashSet<string>();
+        private readonly Dictionary<string, string> _restoreDrafts = new Dictionary<string, string>();
 
         /// <summary>Same as clicking a button inside the chat list (checks call this directly).</summary>
         public void OnChatAction(string action, Row row)
@@ -1297,7 +1299,10 @@ namespace NyangTalk.App
                     break;
                 case "resendConfirm": if (row.Outgoing != null) SendAgain(row.Outgoing.RequestId); break;
                 case "resendCancel": if (row.Outgoing != null) { _askResend.Remove(row.Outgoing.RequestId); RefreshChat(); } break;
-                case "delete": if (row.Outgoing != null) { _askResend.Remove(row.Outgoing.RequestId); _chat.DeleteFailed(row.Outgoing.RequestId); _dirty = true; RefreshChat(); } break;
+                case "restore": if (row.Outgoing != null) RestoreOutgoing(row.Outgoing.RequestId); break;
+                case "restoreConfirm": if (row.Outgoing != null) RestoreOutgoing(row.Outgoing.RequestId, true); break;
+                case "restoreCancel": if (row.Outgoing != null) { _restoreDrafts.Remove(row.Outgoing.RequestId); RefreshChat(); } break;
+                case "delete": if (row.Outgoing != null) { _askResend.Remove(row.Outgoing.RequestId); _restoreDrafts.Remove(row.Outgoing.RequestId); _chat.DeleteFailed(row.Outgoing.RequestId); _dirty = true; RefreshChat(); } break;
             }
         }
 
@@ -1307,6 +1312,26 @@ namespace NyangTalk.App
             var b = _chat.Retry(requestId); // the draft in Input is not touched
             if (b != SendBlock.None) HintLabel.Text = L("send.blocked." + b);
             _dirty = true; RefreshChat();
+        }
+
+        /// <summary>Restore exact original text for editing without sending it or overwriting a newer draft silently.</summary>
+        public void RestoreOutgoing(string requestId, bool replaceDraft = false)
+        {
+            var message = _chat.Outbox.Find(requestId);
+            if (message == null || !message.NeedsAction) return;
+            var draft = Input.Text;
+            string expected;
+            if (draft.Length > 0 && draft != message.Text && (!replaceDraft || !_restoreDrafts.TryGetValue(requestId, out expected) || expected != draft))
+            {
+                _restoreDrafts[requestId] = draft;
+                RefreshChat();
+                return;
+            }
+            Input.Text = message.Text;
+            Input.SelectionStart = Input.Text.Length;
+            Input.Focus();
+            _restoreDrafts.Remove(requestId);
+            RefreshChat();
         }
 
         private ContextMenuStrip _menu;

@@ -2,7 +2,7 @@
 
 `build.ps1` 실행 때 자동으로 생성된다. 손으로 고치지 않는다.
 
-생성: 2026-11-24 14:07 · 통과 245 · 실패 0
+생성: 2026-11-24 17:54 · 통과 250 · 실패 0
 
 | 명세 항목 | 검사 |
 |---|---|
@@ -187,14 +187,21 @@
 | catalog | PASS CatalogCompatibilityTests.AlreadyCompatibleCatalogAndUnexpectedPatchesRemainUntouched<br>PASS CatalogCompatibilityTests.InspectionReadsOnlyTheHeaderAndHandlesShortReads<br>PASS CatalogCompatibilityTests.KnownRuntimeMismatchChangesOnlyTheCatalogMagic<br>PASS CatalogCompatibilityTests.OnlyTheExactKnownMutableCatalogFieldIsEligible<br>PASS CatalogCompatibilityTests.ProductionPathNeverChangesFilesAndSurfacesReadErrors<br>PASS CatalogCompatibilityTests.UnknownHeadersVersionsAndShortInputsFailClosed |
 | compatibility | PASS CatalogCompatibilityTests.AlreadyCompatibleCatalogAndUnexpectedPatchesRemainUntouched<br>PASS CatalogCompatibilityTests.InspectionReadsOnlyTheHeaderAndHandlesShortReads<br>PASS CatalogCompatibilityTests.KnownRuntimeMismatchChangesOnlyTheCatalogMagic<br>PASS CatalogCompatibilityTests.OnlyTheExactKnownMutableCatalogFieldIsEligible<br>PASS CatalogCompatibilityTests.ProductionPathNeverChangesFilesAndSurfacesReadErrors<br>PASS CatalogCompatibilityTests.UnknownHeadersVersionsAndShortInputsFailClosed |
 | component-io | PASS ComponentErrorNoticeTests.HealthyStatusRemovesOldWarningAndLetsARecurrenceShowAgain<br>PASS ComponentIoTests.PermitReaderAllowsTheAtomicWritersExistingHandle<br>PASS ComponentIoTests.PermitSnapshotsStayCompleteDuringAtomicReplacement<br>PASS ComponentIoTests.RecoveredOperationClearsOnlyItsOwnCurrentFault<br>PASS ComponentIoTests.SnapshotReaderRejectsOversizedControlFiles |
+| draft | PASS ComposeWorkflowTests.SubmitClearsImmediatelyAndRestoringNeverSilentlyReplacesANewerDraft |
+| filter | PASS ComposeWorkflowTests.FilterGuidanceAndRestoreActionsFitAllSupportedLanguagesAndSizes |
+| layout | PASS ComposeWorkflowTests.FilterGuidanceAndRestoreActionsFitAllSupportedLanguagesAndSizes |
 | notify | PASS SettingsPreviewTests.NotificationPreviewSurvivesNormalPollingAndRestoresUnreadState |
 | opacity | PASS SettingsPreviewTests.OpacityDragPreviewSurvivesHoverTimerAndCancelsWhenSettingsClose |
 | participants | PASS ParticipantsLayoutTests.ParticipantLabelsWrapInEveryLanguageAndFontSize<br>PASS ParticipantsLayoutTests.ShortParticipantOverlayKeepsAllTextReachable |
+| placement | PASS ComposeWorkflowTests.SettingsPreferAdjacentSpaceAndStayInsideTheOwnersWorkArea |
 | portrait | PASS SettingsPreviewTests.FaceScopeUsesCompanionImageAndFallsBackForOlderConnectors<br>PASS SettingsPreviewTests.OlderConnectorExplainsFaceScopeWithoutBreakingChat<br>PASS SettingsPreviewTests.PortraitVariantsShareTheSingleFrameQueueAndRepairMissingFiles |
 | preview | PASS SettingsPreviewTests.AllPreviewRowsRemainVisibleAtLargeFontAndNarrowSettingsWidth<br>PASS SettingsPreviewTests.FaceScopeUsesCompanionImageAndFallsBackForOlderConnectors<br>PASS SettingsPreviewTests.NotificationPreviewSurvivesNormalPollingAndRestoresUnreadState<br>PASS SettingsPreviewTests.OlderConnectorExplainsFaceScopeWithoutBreakingChat<br>PASS SettingsPreviewTests.OpacityDragPreviewSurvivesHoverTimerAndCancelsWhenSettingsClose<br>PASS SettingsPreviewTests.PortraitVariantsShareTheSingleFrameQueueAndRepairMissingFiles<br>PASS SettingsPreviewTests.PreviewImagesAndHeaderChangeThroughTheirActualEditors |
-| send | PASS NativeSpeechContractTests.NativeSpeechContractUpdatesTheLocalBubbleAndKeepsTheFilterGate |
-| settings | PASS SettingsPreviewTests.AllPreviewRowsRemainVisibleAtLargeFontAndNarrowSettingsWidth<br>PASS SettingsPreviewTests.FaceScopeUsesCompanionImageAndFallsBackForOlderConnectors<br>PASS SettingsPreviewTests.NotificationPreviewSurvivesNormalPollingAndRestoresUnreadState<br>PASS SettingsPreviewTests.OlderConnectorExplainsFaceScopeWithoutBreakingChat<br>PASS SettingsPreviewTests.OpacityDragPreviewSurvivesHoverTimerAndCancelsWhenSettingsClose<br>PASS SettingsPreviewTests.PortraitVariantsShareTheSingleFrameQueueAndRepairMissingFiles<br>PASS SettingsPreviewTests.PreviewImagesAndHeaderChangeThroughTheirActualEditors |
+| restore | PASS ComposeWorkflowTests.SubmitClearsImmediatelyAndRestoringNeverSilentlyReplacesANewerDraft |
+| send | PASS ComposeWorkflowTests.FilterGuidanceAndRestoreActionsFitAllSupportedLanguagesAndSizes<br>PASS ComposeWorkflowTests.SubmitClearsImmediatelyAndRestoringNeverSilentlyReplacesANewerDraft<br>PASS NativeSpeechContractTests.NativeSpeechContractUpdatesTheLocalBubbleAndKeepsTheFilterGate |
+| settings | PASS ComposeWorkflowTests.SettingsPreferAdjacentSpaceAndStayInsideTheOwnersWorkArea<br>PASS ComposeWorkflowTests.ShortcutOptionsRequireSelectionAndOnlyCreateTheChosenLocation<br>PASS SettingsPreviewTests.AllPreviewRowsRemainVisibleAtLargeFontAndNarrowSettingsWidth<br>PASS SettingsPreviewTests.FaceScopeUsesCompanionImageAndFallsBackForOlderConnectors<br>PASS SettingsPreviewTests.NotificationPreviewSurvivesNormalPollingAndRestoresUnreadState<br>PASS SettingsPreviewTests.OlderConnectorExplainsFaceScopeWithoutBreakingChat<br>PASS SettingsPreviewTests.OpacityDragPreviewSurvivesHoverTimerAndCancelsWhenSettingsClose<br>PASS SettingsPreviewTests.PortraitVariantsShareTheSingleFrameQueueAndRepairMissingFiles<br>PASS SettingsPreviewTests.PreviewImagesAndHeaderChangeThroughTheirActualEditors |
+| shortcuts | PASS ComposeWorkflowTests.ShortcutOptionsRequireSelectionAndOnlyCreateTheChosenLocation<br>PASS ShortcutTests.RealShellLinksUseTheFixedExecutableAndOriginalIconWithoutWatcherArguments |
 | sidebar | PASS SidebarLayoutTests.DefaultSidebarRemainsExpandedAfterApplyingTheWindowPreset<br>PASS SidebarLayoutTests.ShortOverlayScrollsInsteadOfCrushingItsContents<br>PASS SidebarLayoutTests.SidebarSectionsAndHeaderSurviveFontChanges |
+| windows-shell | PASS ShortcutTests.RealShellLinksUseTheFixedExecutableAndOriginalIconWithoutWatcherArguments |
 | 검토 | PASS ModParkingTests.ParkingRefusesWhenUnsureAndKeepsWhatItCannotRestore |
 | 요청-1 | PASS PanelAndLinkTests.ParticipantsOpenAsASidePanel |
 | 요청-2 | PASS PanelAndLinkTests.PillFollowsTheThemeAndLooksPressable |
@@ -208,14 +215,14 @@
 
 ## 측정값 (이 개발 PC에서 측정, 다른 PC 결과 아님)
 
-- 게임 구조 검사(실제 게임 파일 읽기 전용): 어셈블리 69개, 타입 10735개, 347 ms (목표 3,000 ms), 혼용 문제 0건
+- 게임 구조 검사(실제 게임 파일 읽기 전용): 어셈블리 69개, 타입 10735개, 367 ms (목표 3,000 ms), 혼용 문제 0건
 - 기본 밝게 원본 유지: subtext/window 대비 2.29:1 (4.5 기준 예외)
 - 기본 밝게 원본 유지: subtext/panel 대비 3.65:1 (4.5 기준 예외)
 - 기본 밝게 원본 유지: notice/pill 대비 3.31:1 (4.5 기준 예외)
 - 기본 밝게 원본 유지: warning/window 대비 4.00:1 (4.5 기준 예외)
 - scroll bar pictures: 72 (chat, saved rooms, participants, search; 6 themes x light/dark)
 - settings window pictures: 84 (6 themes x 2 x 7 categories), no Windows grey pixel
-- 3,000개 기록 읽기+묶기: 9 ms (목표 1,500 ms, 화면 그리기 제외), 관리 힙 증가 약 2 MB
+- 3,000개 기록 읽기+묶기: 8 ms (목표 1,500 ms, 화면 그리기 제외), 관리 힙 증가 약 2 MB
 - 내 말풍선 테스트(11pt): 실제 글자 폭 39px, 보이는 좌/우 여백 9/9px
 - 배치 계산 검사 조합 수: 1296 (너비 2 × 테마 6 × 채팅 모양 3 × 프리셋 4 × 색 위치 3 × 내 캐릭터 3)
-- 3,000개 표시(기록 읽기·묶기·배치·첫 그리기): 836 ms (목표 1,500 ms). 검사 프로세스 작업 집합 178 MB, 개인 바이트 130 MB — 검사 실행기 전체 값이라 앱 단독 값이 아님
+- 3,000개 표시(기록 읽기·묶기·배치·첫 그리기): 702 ms (목표 1,500 ms). 검사 프로세스 작업 집합 182 MB, 개인 바이트 132 MB — 검사 실행기 전체 값이라 앱 단독 값이 아님

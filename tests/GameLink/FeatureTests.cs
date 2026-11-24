@@ -196,7 +196,7 @@ namespace NyangTalk.Tests
             {
                 var row = new ChatLayout(meas).OutgoingRow(m, 400, new RenderStyle());
                 var status = row.Parts.First(p => p.Kind == PartKind.Status).Text;
-                A.True(status.Contains("방에 전달 안 됨") && status.Contains("채팅 필터") && status.Contains("3개까지"), "notice text: " + status);
+                A.True(status.Contains("게임 입력 규칙으로 거절됨") && status.Contains("채팅 필터") && status.Contains("3개까지"), "notice text: " + status);
             }
         }
 

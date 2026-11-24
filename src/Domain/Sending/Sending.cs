@@ -32,6 +32,7 @@ namespace NyangTalk.Domain.Sending
         public bool NeedsAction { get { return State == OutgoingState.Rejected || State == OutgoingState.Failed || State == OutgoingState.Unconfirmed || State == OutgoingState.NotDelivered; } }
         /// <summary>Show the "use at most 3 of the same punctuation mark" hint.</summary>
         public bool PunctuationHint { get { return State == OutgoingState.NotDelivered && (Reason == "punctuation" || NyangTalk.Domain.Sending.Punctuation.HasRun(Text, 3)); } }
+        public bool SymbolsOnlyHint { get { return State == OutgoingState.NotDelivered && !string.IsNullOrWhiteSpace(Text) && !Text.Any(char.IsLetterOrDigit); } }
     }
 
     /// <summary>Send-side rules (50-SPEC 7장). Pure: time is passed in.</summary>

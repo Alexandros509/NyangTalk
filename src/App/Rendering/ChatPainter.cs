@@ -84,7 +84,7 @@ namespace NyangTalk.App.Rendering
                             using (var b = new SolidBrush(p.Back)) g.FillPath(b, path);
                             using (var pen = new Pen(RenderStyle.C(th.Border))) g.DrawPath(pen, path);
                         }
-                        TextRenderer.DrawText(g, p.Text, m.Font(s, false, true), r, p.Fore, TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.NoPrefix);
+                        TextRenderer.DrawText(g, p.Text, m.Font(s, false, true), r, p.Fore, TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.NoPrefix | TextFormatFlags.WordBreak | TextFormatFlags.NoPadding);
                         break;
                     case PartKind.Center:
                         if (!p.Back.IsEmpty) using (var path = Rounded(r, r.Height / 2)) using (var b = new SolidBrush(p.Back)) g.FillPath(b, path);

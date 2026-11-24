@@ -160,7 +160,7 @@ namespace NyangTalk.App
             SettingsForm open = null;
             form.SettingsOpener = cat =>
             {
-                if (open == null || open.IsDisposed) { open = CreateSettings(host, form, link); Placement.Over(open, form); }
+                if (open == null || open.IsDisposed) { open = CreateSettings(host, form, link); Placement.Beside(open, form); }
                 open.Show();
                 open.Activate();
                 if (cat != null) open.ShowCategory(cat);
