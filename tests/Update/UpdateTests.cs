@@ -192,7 +192,7 @@ namespace NyangTalk.Tests
             var other = ECDsa.Create(ECCurve.NamedCurves.nistP256);
             var s2 = Make();
             var exe = FakeExe("0.2.0");
-            var res = ReleaseBuilder.Run(new ReleaseRequest { ChecksPassed = true, AssetUrlBase = AssetBase, Version = "0.2.0", ExePath = exe, Sequence = 1, Changelog = "## [0.2.0]", SourceDir = Path.Combine(Ctx.Root, "third_party", "sources") }, other, new List<byte[]> { Signatures.PublicOf(other) }, x => true, (a, b, c) => { });
+            var res = ReleaseBuilder.Run(new ReleaseRequest { ChecksPassed = true, AssetUrlBase = AssetBase, Version = "0.2.0", ExePath = exe, Sequence = 1, Changelog = "## [0.2.0]", SourceDir = Path.Combine(Ctx.Root, "third_party", "sources"), Notes = { { "ko", "변경" }, { "en", "change" }, { "ja", "変更" } } }, other, new List<byte[]> { Signatures.PublicOf(other) }, x => true, (a, b, c) => { });
             s2.Http.Put(InfoUrl, Encoding.UTF8.GetBytes(res.UpdateJson)); s2.Http.Put(InfoUrl + ".sig", Encoding.ASCII.GetBytes(res.Signature));
             A.Eq(UpdateStatus.BadSignature, s2.Svc.Check(Fake.T0).Status, "unknown key rejected");
         }
@@ -241,7 +241,7 @@ namespace NyangTalk.Tests
             int uploads = 0;
             Action<string, string, string> up = (a, b, c) => uploads++;
             var sources = Path.Combine(Ctx.Root, "third_party", "sources");
-            Func<ReleaseRequest> req = () => new ReleaseRequest { ChecksPassed = true, AssetUrlBase = AssetBase, Version = "1.3.0", ExePath = exe, Sequence = 3, Changelog = "# Changelog\n## [1.3.0] - 2026-11-19\n", SourceDir = sources };
+            Func<ReleaseRequest> req = () => new ReleaseRequest { ChecksPassed = true, AssetUrlBase = AssetBase, Version = "1.3.0", ExePath = exe, Sequence = 3, Changelog = "# Changelog\n## [1.3.0] - 2026-11-19\n", SourceDir = sources, Notes = { { "ko", "변경" }, { "en", "change" }, { "ja", "変更" } } };
             var r = req(); r.ChecksPassed = false;
             A.Eq("checks failed", ReleaseBuilder.Run(r, key, keys, x => true, up).StoppedAt, "checks");
             A.Eq("signature round-trip failed", ReleaseBuilder.Run(req(), key, new List<byte[]> { Signatures.PublicOf(ECDsa.Create(ECCurve.NamedCurves.nistP256)) }, x => true, up).StoppedAt, "round trip");
@@ -258,6 +258,15 @@ namespace NyangTalk.Tests
             A.True(ReleaseBuilder.Run(r, key, keys, x => true, up).StoppedAt.StartsWith("built exe does not match"), "exe version differs from release version");
             r = req(); r.SourceDir = Ctx.NewDir("no-sources");
             A.Eq("LGPL source archive missing: BepInEx-5.4.23.6-src.zip", ReleaseBuilder.Run(r, key, keys, x => true, up).StoppedAt, "no release without the LGPL sources");
+            r = req(); r.Notes.Remove("ja");
+            A.Eq("notes missing: ja", ReleaseBuilder.Run(r, key, keys, x => true, up).StoppedAt, "no release without a note in every language");
+            r = req(); r.Notes["en"] = "   ";
+            A.Eq("notes missing: en", ReleaseBuilder.Run(r, key, keys, x => true, up).StoppedAt, "blank note counts as missing");
+            r = req(); r.Notes["ko"] = new string('가', UpdatePolicy.NotesMaxChars + 1);
+            A.Eq("notes too long: ko", ReleaseBuilder.Run(r, key, keys, x => true, up).StoppedAt, "note longer than the app accepts");
+            var parsed = ReleaseBuilder.ParseNotes("{\"ko\":\"가\",\"en\":\"a\",\"ja\":\"あ\",\"x\":1}");
+            A.True(parsed["ko"] == "가" && parsed["ja"] == "あ" && !parsed.ContainsKey("x"), "notes file read, non-text ignored");
+            A.Throws<FormatException>(() => ReleaseBuilder.ParseNotes("[1]"), "notes file must be an object");
             A.Eq(0, uploads, "nothing uploaded in any failing case");
             var ok = ReleaseBuilder.Run(req(), key, keys, x => true, up);
             A.True(ok.Uploaded, "happy path uploads");

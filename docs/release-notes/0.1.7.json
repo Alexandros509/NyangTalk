@@ -1,0 +1,5 @@
+{
+  "ko": "'다시 연결'을 누르면 결과(연결됨·끊김·읽기 실패)를 알림줄에 보여 줍니다. 파일을 읽지 못해도 오류 창이 뜨지 않으며, 같은 게임 실행에서 수신 경고가 반복되면 게임 재시작을 안내합니다.",
+  "en": "Reconnect now shows its result (connected, disconnected or read failed) on the notice line. Unreadable files no longer open an error window, and a repeated receive warning in the same game run suggests restarting the game.",
+  "ja": "「再接続」を押すと、結果(接続中・切断・読み取り失敗)を案内帯に表示します。ファイルを読めなくてもエラー画面は出ず、同じゲーム実行中に受信の警告が繰り返されるとゲームの再起動を案内します。"
+}

@@ -154,6 +154,33 @@ namespace NyangTalk.Adapters.Update
             return list;
         }
 
+        /// <summary>The languages every update note needs: the app shows the note in its own language (signed, so it cannot be added later).</summary>
+        public static readonly string[] NoteLanguages = { "ko", "en", "ja" };
+
+        /// <summary>Null when every language has a note within the length the app accepts; otherwise why not.</summary>
+        public static string CheckNotes(IDictionary<string, string> notes)
+        {
+            foreach (var lang in NoteLanguages)
+            {
+                string s;
+                if (notes == null || !notes.TryGetValue(lang, out s) || string.IsNullOrWhiteSpace(s)) return "notes missing: " + lang;
+                if (s.Length > UpdatePolicy.NotesMaxChars) return "notes too long: " + lang;
+            }
+            return null;
+        }
+
+        /// <summary>Reads a notes file: {"ko": "...", "en": "...", "ja": "..."}. Non-string values are ignored (and then reported missing).</summary>
+        public static Dictionary<string, string> ParseNotes(string json)
+        {
+            var notes = new Dictionary<string, string>(StringComparer.Ordinal);
+            object o;
+            if (json == null || !Json.TryParse(json, out o)) throw new FormatException("notes file is not JSON");
+            var d = Json.Obj(o);
+            if (d == null) throw new FormatException("notes file is not a JSON object");
+            foreach (var kv in d) { var s = kv.Value as string; if (s != null) notes[kv.Key] = s; }
+            return notes;
+        }
+
         public sealed class Result
         {
             public bool Uploaded;
@@ -178,6 +205,8 @@ namespace NyangTalk.Adapters.Update
             if (r.Channel == "stable" && v.IsPrerelease) { res.StoppedAt = "pre-release on stable channel"; return res; }
             Uri baseUri;
             if (r.AssetUrlBase == null || !Uri.TryCreate(r.AssetUrlBase, UriKind.Absolute, out baseUri) || baseUri.Scheme != "https") { res.StoppedAt = "asset URL base must be absolute https"; return res; }
+            var notesProblem = CheckNotes(r.Notes);
+            if (notesProblem != null) { res.StoppedAt = notesProblem; return res; }
             string sourceProblem;
             res.SourceArchives = SourceArchives(r.SourceDir, out sourceProblem);
             if (sourceProblem != null) { res.StoppedAt = sourceProblem; return res; }

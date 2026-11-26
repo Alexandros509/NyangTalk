@@ -11,7 +11,8 @@ namespace NyangTalk.Tools
     /// <summary>
     /// Publisher tool (20-SPEC 6장). Never stores the password; the key file is password-encrypted and portable.
     ///   keygen &lt;out.key&gt;                       new key pair; prints the public key to embed in the app
-    ///   release &lt;version&gt; &lt;exe&gt; &lt;key&gt; &lt;sequence&gt; &lt;assetUrlBase&gt; [--channel beta] [--game-payload-changed] [--breaking] [--prev X]
+    ///   release &lt;version&gt; &lt;exe&gt; &lt;key&gt; &lt;sequence&gt; &lt;assetUrlBase&gt; --notes &lt;file.json&gt; [--channel beta] [--game-payload-changed] [--breaking] [--prev X]
+    /// The notes file holds the ko/en/ja update note shown in the app ({"ko": ..., "en": ..., "ja": ...}); all three are required.
     /// Upload happens only after typing "yes" at the summary, using `gh release create`. Nothing is uploaded otherwise.
     /// </summary>
     public static class ReleaseToolProgram
@@ -22,7 +23,7 @@ namespace NyangTalk.Tools
             {
                 if (args.Length == 2 && args[0] == "keygen") return KeyGen(args[1]);
                 if (args.Length >= 6 && args[0] == "release") return Release(args);
-                Console.Error.WriteLine("usage: keygen <out.key> | release <version> <exe> <key> <sequence> <assetUrlBase> [--channel beta] [--game-payload-changed] [--breaking] [--prev X]");
+                Console.Error.WriteLine("usage: keygen <out.key> | release <version> <exe> <key> <sequence> <assetUrlBase> --notes <file.json> [--channel beta] [--game-payload-changed] [--breaking] [--prev X]");
                 return 1;
             }
             catch (Exception ex) { Console.Error.WriteLine(ex.GetType().Name + ": " + ex.Message); return 1; }
@@ -71,6 +72,11 @@ namespace NyangTalk.Tools
                 Changelog = File.Exists(Path.Combine(root, "CHANGELOG.md")) ? File.ReadAllText(Path.Combine(root, "CHANGELOG.md")) : null,
                 SourceDir = Path.Combine(root, "third_party", "sources")
             };
+            int notesAt = Array.IndexOf(a, "--notes");
+            if (notesAt >= 0 && notesAt + 1 < a.Length) req.Notes = ReleaseBuilder.ParseNotes(File.ReadAllText(a[notesAt + 1]));
+            // stop before the checks and the password when the notes are not complete (they are signed and cannot be added later)
+            var notesProblem = ReleaseBuilder.CheckNotes(req.Notes);
+            if (notesProblem != null) { Console.Error.WriteLine("stopped: " + notesProblem + " (use --notes <file.json>)"); return 2; }
             req.ExistingTags.AddRange(Run("git", "tag --list").Split('\n').Select(t => t.Trim()).Where(t => t.Length > 0));
             req.ChecksPassed = RunCode("powershell", "-NoProfile -ExecutionPolicy Bypass -File build.ps1") == 0;
             if (!req.ChecksPassed) { Console.Error.WriteLine("stopped: checks failed"); return 2; }
