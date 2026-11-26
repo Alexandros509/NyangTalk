@@ -99,6 +99,7 @@ namespace NyangTalk.Tests
             // end to end with the fake game and the app window
             using (var rig = new UiRig("health", 3))
             {
+                Shell.Link.UtcNow = () => rig.Clock.Now;
                 var chat = rig.Host.Chat;
                 for (int i = 0; i < 40; i++) { if (i % 3 == 0) rig.Game.Say(1, "평소 대화 " + i, rig.Clock.Now); rig.Step(); }
                 Shell.Link.UpdateNotices();
@@ -118,11 +119,63 @@ namespace NyangTalk.Tests
                 Shell.Link.UpdateNotices();
                 A.False(chat.Receive.Warning, "다시 연결 starts over");
                 A.True(rig.Form.Notices.Get(NyangTalk.App.NoticeKind.Health) == null, "notice gone");
+                var result = rig.Form.Notices.Current;
+                A.True(result != null && result.Kind == NyangTalk.App.NoticeKind.Connection && result.Text == rig.Host.Prefs.L("reconnect.connected"), "다시 연결 says what came of it: " + (result == null ? "none" : result.Text));
+
+                // still nothing reaches the app in the same game run: reading again cannot help, ask for a game restart
+                for (int i = 0; i < 25; i++) { if (i < 4) rig.Game.Say(2, "또 사라질 글 " + i, rig.Clock.Now); rig.Step(); }
+                Shell.Link.UpdateNotices();
+                A.True(chat.Receive.Warning, "receiving stopped again: warning");
+                var again = rig.Form.Notices.Get(NyangTalk.App.NoticeKind.Health);
+                A.True(again != null && again.Text == rig.Host.Prefs.L("health.receiveStuckAgain"), "second warning asks for a game restart");
+                A.True(again.ActionText == null, "no 다시 연결 button that would do nothing");
 
                 rig.Game.DropLines = false; rig.Game.ReportEvents = false;
                 rig.Game.DropLines = true;
                 for (int i = 0; i < 30; i++) { if (i < 5) rig.Game.Say(2, "옛 구성요소 " + i, rig.Clock.Now); rig.Step(); }
                 A.False(chat.Receive.Warning, "component without the count: never warns");
+            }
+        }
+
+        [Test("95-2.6")]
+        public static void ReconnectButtonShowsItsResultAndSurvivesUnreadableFiles()
+        {
+            using (var rig = new UiRig("reconnect", 3))
+            {
+                Shell.Link.UtcNow = () => rig.Clock.Now;
+                var f = rig.Form;
+                var L = (Func<string, string>)rig.Host.Prefs.L;
+
+                // the game stops writing its status: the header button reads again and says it is still cut off
+                rig.Clock.Now = rig.Clock.Now.AddSeconds(8);
+                f.ReconnectButton.PerformClick();
+                A.Eq(LinkState.Disconnected, rig.Host.Chat.Link, "still disconnected");
+                var n = f.Notices.Current;
+                A.True(n != null && n.Kind == NoticeKind.Connection && n.Text.StartsWith(string.Format(L("reconnect.result"), L("link.disconnected"))) && n.Text.EndsWith(L("reconnect.restartHint")), "result with restart hint: " + (n == null ? "none" : n.Text));
+                A.True(n.ActionText != L("notice.btn.reconnect"), "the result does not offer 다시 연결 again");
+                Shell.Link.UpdateNotices();
+                A.True(f.Notices.Current == n, "the result stays on the line for a while instead of being replaced at once");
+
+                // the game answers again: the old result gives way at once instead of claiming "disconnected" for 15 s
+                rig.Step();
+                A.Eq(LinkState.Connected, rig.Host.Chat.Link, "connected again");
+                A.True(f.Notices.Current == null || !f.Notices.Current.Key.StartsWith("reconnect-result:"), "stale result removed when the link changed");
+                f.Reconnect();
+                A.Eq(L("reconnect.connected"), f.Notices.Current.Text, "connected result");
+
+                // a file the app cannot read: no crash, a plain result line, details only in the log
+                var lobbyFile = Path.Combine(rig.Dir, "exchange", NyangTalk.Shared.Exchange.LobbyFile(rig.Host.Chat.CurrentLobbyId));
+                A.True(File.Exists(lobbyFile), "lobby file exists");
+                using (new FileStream(lobbyFile, FileMode.Open, FileAccess.ReadWrite, FileShare.None))
+                    f.Reconnect();
+                A.Eq(L("reconnect.readFailed"), f.Notices.Current.Text, "read failure shown");
+
+                // a status file the app cannot read: the earlier status is kept, but never reported as "connected"
+                var statusFile = Path.Combine(rig.Dir, "exchange", NyangTalk.Shared.Exchange.StatusFile);
+                using (new FileStream(statusFile, FileMode.Open, FileAccess.ReadWrite, FileShare.None))
+                    f.Reconnect();
+                A.Eq(L("reconnect.readFailed"), f.Notices.Current.Text, "unreadable status is a read failure, not a cached 'connected'");
+                A.True(rig.Host.Log.Any(l => l.StartsWith("reconnect:") || l.Contains(" reconnect: ")), "logged");
             }
         }
 

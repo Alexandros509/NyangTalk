@@ -154,6 +154,7 @@ namespace NyangTalk.App
             var link = new LinkServices(host, form);
             Link = link;
             form.AutomationStatusText = link.AutomationStatus;
+            form.ReconnectAction = link.Reconnect;
 
             SettingsForm.OpacityPreview = v => form.ApplyOpacity(v);
             form.TickHook = () => { if (host.Demo == null) link.Monitor(); link.PermitTick(); link.UpdateNotices(); };

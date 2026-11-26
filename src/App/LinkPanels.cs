@@ -673,7 +673,10 @@ namespace NyangTalk.App
         public void UpdateNotices()
         {
             var state = _host.Chat.Link;
-            if (UtcNow() < _confirmUntil) { UpdateCheckTick(); UpdateUpdateNotice(); return; }   // the line is asking; leave it for a minute
+            // a "다시 연결" result is a snapshot: once the link changes it would say the opposite, so it gives way at once
+            if (_reconnectResultLink != null && state != _reconnectResultLink.Value) _confirmUntil = DateTime.MinValue;
+            if (UtcNow() >= _confirmUntil) _reconnectResultLink = null;
+            if (UtcNow() < _confirmUntil) { UpdateCheckTick(); UpdateUpdateNotice(); UpdateHealthNotice(); return; }   // the line is asking; leave it for a minute
             var kind = ConnectionAction(state, GameRunningCached(), ForeignModsBlocked || KeptSetupProblem);
             if (kind == NoticeActionKind.None) _form.Notices.Clear(NoticeKind.Connection);
             else
@@ -692,10 +695,60 @@ namespace NyangTalk.App
             var w = _host.Chat.Receive;
             if (!w.Warning) { _form.Notices.Clear(NoticeKind.Health); return; }
             if (!_healthLogged) { _healthLogged = true; _host.AddLog("health: component reported " + w.Missing + " chat events the app did not read in " + (int)ReceiveWatch.Window.TotalSeconds + " s"); }
-            _form.Notices.Set(new NoticeEntry { Key = "health:receive", Kind = NoticeKind.Health, Text = L("health.receiveStuck"), ActionText = L("notice.btn.reconnect"), Action = () => { _healthLogged = false; _form.Reconnect(); } });
+            // "다시 연결" only reads the files again; when the warning comes back in the same game run, reading again
+            // cannot help (the component did not write the lines), so the line asks for a game restart instead.
+            if (_healthRetriedKey != null && _healthRetriedKey == HealthKey() && UtcNow() - _healthRetriedAt <= RetriedFor)
+                _form.Notices.Set(new NoticeEntry { Key = "health:receive-again", Kind = NoticeKind.Health, Text = L("health.receiveStuckAgain") });
+            else
+                _form.Notices.Set(new NoticeEntry { Key = "health:receive", Kind = NoticeKind.Health, Text = L("health.receiveStuck"), ActionText = L("notice.btn.reconnect"), Action = Reconnect });
         }
 
         private bool _healthLogged;
+        private string _healthRetriedKey;
+        private DateTime _healthRetriedAt;
+        private LinkState? _reconnectResultLink;
+        /// <summary>A warning this soon after "다시 연결" in the same game run counts as the same stall (the warning needs 20 s).</summary>
+        private static readonly TimeSpan RetriedFor = TimeSpan.FromMinutes(2);
+
+        private string HealthKey()
+        {
+            var st = _host.Chat.Status;
+            return st == null ? "" : (st.GameSession ?? "") + "|" + (st.Lobby == null ? "" : st.Lobby.LobbyId);
+        }
+
+        /// <summary>
+        /// "다시 연결" (header button, menu and notice line): reads the game's files again now and keeps the result on the
+        /// top notice line for 15 s, so the click always shows what came of it.
+        /// </summary>
+        public void Reconnect()
+        {
+            bool wasWarning = _host.Chat.Receive.Warning;
+            bool read = _form.ReadGameAgain();
+            _healthLogged = false;
+            if (wasWarning && read) { _healthRetriedKey = HealthKey(); _healthRetriedAt = UtcNow(); }
+            if (!_host.Chat.Receive.Warning) _form.Notices.Clear(NoticeKind.Health);
+
+            var state = _host.Chat.Link;
+            string text;
+            if (!read) text = L("reconnect.readFailed");
+            else if (state == LinkState.Connected) text = L("reconnect.connected");
+            else text = string.Format(L("reconnect.result"), _form.LinkText()) + (state == LinkState.Disconnected ? " " + L("reconnect.restartHint") : "");
+            _host.AddLog("reconnect: " + (read ? state.ToString() : "read failed"));
+
+            _confirmUntil = UtcNow() + TimeSpan.FromSeconds(15);
+            _reconnectResultLink = state;
+            // the next step the line would offer anyway (install, open Steam, ...), but never "다시 연결" again right away
+            var nextKind = read ? ConnectionAction(state, GameRunningCached(), ForeignModsBlocked || KeptSetupProblem) : NoticeActionKind.None;
+            bool offer = nextKind != NoticeActionKind.None && nextKind != NoticeActionKind.Reconnect && !Busy;
+            _form.Notices.Set(new NoticeEntry
+            {
+                Key = "reconnect-result:" + UtcNow().Ticks,
+                Kind = NoticeKind.Connection,
+                Text = text,
+                ActionText = offer ? L(ActionKey(nextKind)) : null,
+                Action = offer ? (Action)(() => { _confirmUntil = DateTime.MinValue; RunNoticeAction(nextKind); }) : null
+            });
+        }
 
         private void RunNoticeAction(NoticeActionKind kind)
         {
@@ -733,7 +786,7 @@ namespace NyangTalk.App
                     if (Game.LaunchViaSteam(out why)) _form.ShowNotice("launch:" + UtcNow().Ticks, L("install.askedSteam"));
                     else _form.ShowNotice("launch:" + UtcNow().Ticks, string.Format(L("install.relaunchFailed"), why));
                     break;
-                case NoticeActionKind.Reconnect: _form.Reconnect(); break;
+                case NoticeActionKind.Reconnect: Reconnect(); break;
             }
         }
 

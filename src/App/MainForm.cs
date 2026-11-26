@@ -163,8 +163,26 @@ namespace NyangTalk.App
 
         public string L(string key) { return _prefs.L(key); }
 
-        /// <summary>"다시 연결": read the game's files again now.</summary>
-        public void Reconnect() { _chat.Reconnect(); UpdateHeader(); }
+        /// <summary>"다시 연결" with its result on the notice line; Shell wires it to LinkServices.Reconnect.</summary>
+        public Action ReconnectAction;
+
+        /// <summary>"다시 연결": read the game's files again now and say what came of it.</summary>
+        public void Reconnect() { if (ReconnectAction != null) ReconnectAction(); else ReadGameAgain(); }
+
+        /// <summary>
+        /// Reads the game's files again now. False when they could not be read: an error while reading (logged; on a click
+        /// path, so nothing escapes to a crash dialog), or a status file that was there before but could not be read now
+        /// (the kept older status would otherwise be reported as the result).
+        /// </summary>
+        public bool ReadGameAgain()
+        {
+            bool ok = true;
+            try { _chat.Reconnect(); }
+            catch (Exception ex) { ok = false; _host.AddLog("reconnect: " + ex.GetType().Name + ": " + ex.Message); }
+            if (ok && !_chat.LastPollReadStatus && _chat.Status != null) { ok = false; _host.AddLog("reconnect: status file not readable, kept the earlier status"); }
+            UpdateHeader();
+            return ok;
+        }
 
         /// <summary>Another start of the app asked this window to come to the front (95-SPEC 1.1).</summary>
         public void ComeToFront()

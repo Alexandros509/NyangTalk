@@ -241,7 +241,12 @@ namespace NyangTalk.Domain.Preferences
             T("notice.btn.park", "다른 모드 옮기고 설치", "Move other mods and install", "他のMODを移してインストール");
             T("notice.btn.openSteam", "Steam에서 봉고캣 열기", "Open Bongo Cat in Steam", "SteamでBongo Catを開く");
             T("notice.btn.reconnect", "다시 연결", "Reconnect", "再接続");
-            T("health.receiveStuck", "게임은 채팅을 받았다는데 이 창에는 들어오지 않고 있어요", "The game received chat, but it is not reaching this window", "ゲームはチャットを受け取っていますが、このウィンドウに届いていません");
+            T("reconnect.connected", "다시 확인했어요. 게임과 연결돼 있어요", "Checked again. Connected to the game", "再確認しました。ゲームと接続しています");
+            T("reconnect.result", "다시 확인했어요: {0}", "Checked again: {0}", "再確認しました: {0}");
+            T("reconnect.restartHint", "게임이 켜져 있는데 계속 이렇다면 게임을 다시 시작해 주세요", "If the game is open and this continues, please restart it", "ゲームが起動中でこの状態が続くなら、ゲームを再起動してください");
+            T("reconnect.readFailed", "게임 파일을 읽지 못했어요. 잠시 뒤 다시 눌러 주세요", "Could not read the game files. Please try again in a moment", "ゲームのファイルを読めませんでした。少し待ってからもう一度押してください");
+            T("health.receiveStuckAgain", "다시 연결해도 채팅이 들어오지 않아요. 게임을 다시 시작해 주세요", "Chat still is not arriving after reconnecting. Please restart the game", "再接続してもチャットが届きません。ゲームを再起動してください");
+            T("health.receiveStuck","게임은 채팅을 받았다는데 이 창에는 들어오지 않고 있어요", "The game received chat, but it is not reaching this window", "ゲームはチャットを受け取っていますが、このウィンドウに届いていません");
             T("notice.foreignMods", "다른 모드가 있어 연결을 설치하지 못했어요", "Another mod is in the way of the connector", "他のMODがあるため接続をインストールできませんでした");
             T("notice.keptProblem", "이전에 깔린 모드의 BepInEx 구성에서 문제가 보여요", "The earlier mod's BepInEx setup shows problems", "以前のMODのBepInEx構成に問題があります");
             T("update.readyLine", "새 버전 {0} 준비됨", "New version {0} ready", "新しいバージョン{0}の準備完了");

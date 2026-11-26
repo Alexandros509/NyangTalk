@@ -173,10 +173,14 @@ namespace NyangTalk.Application
         public bool IsArchivedView { get { return ArchivedLobbyId != null; } }
         public string ViewLobbyId { get { return ArchivedLobbyId ?? CurrentLobbyId; } }
 
+        /// <summary>False when the last poll got no status (missing, locked or broken file) and kept the earlier one.</summary>
+        public bool LastPollReadStatus { get; private set; }
+
         public void Poll()
         {
             var now = _clock.UtcNow;
             var st = _exchange.ReadStatus();
+            LastPollReadStatus = st != null;
             if (st != null) Status = st;
             var verdict = Status == null ? ExchangeVerdict.Ok : ExchangeCompatibility.Check(Status.Schema, Status.ProducerVersion);
             var link = LinkHealth.Evaluate(Installed, Status == null ? (DateTime?)null : Status.WrittenUtc, verdict, now);
