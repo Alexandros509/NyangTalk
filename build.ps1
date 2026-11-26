@@ -37,6 +37,16 @@ function Invoke-Csc([string]$target, [string]$outFile, [string[]]$sources, [stri
     }
     foreach ($s in $sources) { $lines += "`"$s`"" }
     [IO.File]::WriteAllLines($rsp, $lines, (New-Object Text.UTF8Encoding($false)))
+    # A running program keeps its file open (e.g. nyangtalk-release.exe runs this script during a release): Windows lets
+    # a file in use be renamed, so it is moved aside and the new build is written next to it.
+    if (Test-Path $outFile) {
+        try { [IO.File]::OpenWrite($outFile).Close() }
+        catch {
+            $aside = [IO.Path]::ChangeExtension($outFile, ".running" + [IO.Path]::GetExtension($outFile))
+            if (Test-Path $aside) { try { Remove-Item -Force $aside } catch {} }
+            Move-Item -Force $outFile $aside
+        }
+    }
     & $csc /noconfig "@$rsp"
     if ($LASTEXITCODE -ne 0) { throw "csc failed for $outFile" }
 }
