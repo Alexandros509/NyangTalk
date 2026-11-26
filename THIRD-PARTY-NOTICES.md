@@ -1,7 +1,7 @@
 # Third-party notices
 
 NyangTalk's own code is MIT licensed (`LICENSE`). The release `NyangTalk.exe` also carries the following third-party
-files, unmodified except `doorstop_config.ini` (one setting, see below). Versions, download sources and hashes: `third_party/SOURCES.md`. Full license texts:
+files, unmodified except `doorstop_config.ini` (two settings, see below). Versions, download sources and hashes: `third_party/SOURCES.md`. Full license texts:
 `third_party/licenses/` (also embedded in the exe, shown under Settings → 업데이트·정보 → 라이선스·제3자 고지).
 
 | Component | Files | License | Source |
@@ -19,8 +19,9 @@ files, unmodified except `doorstop_config.ini` (one setting, see below). Version
 | SUIT 2.0.5 | Regular, Bold | SIL OFL 1.1 | https://github.com/sun-typeface/SUIT |
 
 **LGPL-2.1 components.** BepInEx and UnityDoorstop are licensed under LGPL-2.1. NyangTalk ships them unmodified as
-separate files (only the `dll_search_path_override` value in `doorstop_config.ini`, a configuration file, is set to
-`BepInEx\unstripped`). Their complete source code is attached to every NyangTalk release as
+separate files (only two values in `doorstop_config.ini`, a configuration file, differ: `dll_search_path_override` is
+set to `BepInEx\unstripped`, and the installer sets `ignore_disable_switch = true` when it writes the file to the game
+folder). Their complete source code is attached to every NyangTalk release as
 `BepInEx-5.4.23.6-src.zip` and `UnityDoorstop-4.6.0-src.zip` (the official source archives of tags `v5.4.23.6` and
 `v4.6.0`, also kept in `third_party/sources/`).
 

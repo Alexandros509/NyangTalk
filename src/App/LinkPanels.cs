@@ -141,11 +141,68 @@ namespace NyangTalk.App
             if (DateTime.UtcNow - _lastProcCheck < TimeSpan.FromSeconds(10)) return;
             _lastProcCheck = DateTime.UtcNow;
             var exe = new RealLocatorEnv().RunningGameExe();
-            if (exe == null) return;
+            if (exe == null) { LoaderNotLoaded = false; return; }
             Location.OnGameProcess(exe);
             var st = _host.Chat.Status;
             var silent = st == null ? TimeSpan.MaxValue : DateTime.UtcNow - st.WrittenUtc;
             Location.OnNoStatus(true, silent);
+            var gameDir = Path.GetDirectoryName(exe);
+            LoaderNotLoaded = _host.Chat.Link != LinkState.Connected && Installer.IsInstalled(gameDir)
+                && NyangTalk.Domain.GameLink.LoaderProbe.NotLoaded(GameStartUtc(exe), LoaderWrittenUtc(gameDir), DateTime.UtcNow);
+            LoaderKeptByUser = LoaderNotLoaded && Installer.ForeignLoaderKept(gameDir);
+        }
+
+        /// <summary>The game runs but BepInEx did not load in it (see <see cref="LoaderProbe"/>); set by <see cref="Monitor"/>.</summary>
+        public bool LoaderNotLoaded;
+        /// <summary>The user's own BepInEx was kept at install, so our doorstop setting was not written: reinstalling cannot fix it.</summary>
+        public bool LoaderKeptByUser;
+
+        /// <summary>The newest start among running game processes (a relaunch can leave an older one closing).</summary>
+        private static DateTime? GameStartUtc(string exe)
+        {
+            DateTime? newest = null;
+            foreach (var p in System.Diagnostics.Process.GetProcessesByName(Path.GetFileNameWithoutExtension(exe)))
+                using (p)
+                {
+                    try { var t = p.StartTime.ToUniversalTime(); if (newest == null || t > newest.Value) newest = t; }
+                    catch (System.ComponentModel.Win32Exception) { }
+                    catch (InvalidOperationException) { }   // ended meanwhile
+                }
+            return newest;
+        }
+
+        /// <summary>
+        /// The newest write BepInEx makes at start: its config and its cache files. None of them (first run that never
+        /// loaded) counts as "long ago"; unreadable counts as unknown.
+        /// </summary>
+        private static DateTime? LoaderWrittenUtc(string gameDir)
+        {
+            try
+            {
+                var bep = Path.Combine(gameDir, "BepInEx");
+                var files = new List<string> { Path.Combine(bep, "config", "BepInEx.cfg") };
+                var cache = Path.Combine(bep, "cache");
+                if (Directory.Exists(cache)) files.AddRange(Directory.GetFiles(cache));
+                var times = files.Where(File.Exists).Select(File.GetLastWriteTimeUtc).ToList();
+                return times.Count == 0 ? DateTime.MinValue : times.Max();
+            }
+            catch (IOException) { return null; }
+            catch (UnauthorizedAccessException) { return null; }
+        }
+
+        /// <summary>The action the notice line offers for the connection right now.</summary>
+        private NoticeActionKind CurrentConnectionAction(LinkState state)
+        {
+            if (LoaderNotLoaded && state != LinkState.Connected && !(ForeignModsBlocked || KeptSetupProblem))
+                return LoaderKeptByUser ? NoticeActionKind.None : NoticeActionKind.ReinstallRestart;   // reinstall does not touch a kept loader
+            return ConnectionAction(state, GameRunningCached(), ForeignModsBlocked || KeptSetupProblem);
+        }
+
+        private string ConnectionText(NoticeActionKind kind, LinkState state)
+        {
+            if (kind == NoticeActionKind.Park) return L(ForeignModsBlocked ? "notice.foreignMods" : "notice.keptProblem");
+            if (LoaderNotLoaded && state != LinkState.Connected) return L(LoaderKeptByUser ? "link.loaderNotLoadedKept" : "link.loaderNotLoaded");
+            return _form.LinkText();
         }
 
         /// <summary>Updates <see cref="ChatService.Installed"/> and foreign-mod state from the current game folder.</summary>
@@ -673,16 +730,20 @@ namespace NyangTalk.App
         public void UpdateNotices()
         {
             var state = _host.Chat.Link;
-            // a "다시 연결" result is a snapshot: once the link changes it would say the opposite, so it gives way at once
-            if (_reconnectResultLink != null && state != _reconnectResultLink.Value) _confirmUntil = DateTime.MinValue;
-            if (UtcNow() >= _confirmUntil) _reconnectResultLink = null;
+            // a "다시 연결" result is a snapshot: once the link changes it would say the opposite, so it gives way at once —
+            // but only while that result is what holds the line (a later Park question or install result keeps its time)
+            bool resultHolds = _reconnectResultLink != null && _confirmUntil == _reconnectResultUntil;
+            if (resultHolds && state != _reconnectResultLink.Value) _confirmUntil = DateTime.MinValue;
+            if (!resultHolds || UtcNow() >= _confirmUntil) _reconnectResultLink = null;
             if (UtcNow() < _confirmUntil) { UpdateCheckTick(); UpdateUpdateNotice(); UpdateHealthNotice(); return; }   // the line is asking; leave it for a minute
-            var kind = ConnectionAction(state, GameRunningCached(), ForeignModsBlocked || KeptSetupProblem);
-            if (kind == NoticeActionKind.None) _form.Notices.Clear(NoticeKind.Connection);
+            var kind = CurrentConnectionAction(state);
+            bool loaderNote = LoaderNotLoaded && state != LinkState.Connected;   // said even when no button can help
+            if (kind == NoticeActionKind.None && !loaderNote) _form.Notices.Clear(NoticeKind.Connection);
             else
             {
-                var text = kind == NoticeActionKind.Park ? L(ForeignModsBlocked ? "notice.foreignMods" : "notice.keptProblem") : _form.LinkText();
-                _form.Notices.Set(new NoticeEntry { Key = "link:" + kind + ":" + state, Kind = NoticeKind.Connection, Text = text, ActionText = Busy ? null : L(ActionKey(kind)), Action = () => RunNoticeAction(kind) });
+                var text = ConnectionText(kind, state);
+                bool button = kind != NoticeActionKind.None && !Busy;
+                _form.Notices.Set(new NoticeEntry { Key = "link:" + kind + ":" + state + (LoaderKeptByUser ? ":kept" : ""), Kind = NoticeKind.Connection, Text = text, ActionText = button ? L(ActionKey(kind)) : null, Action = button ? (Action)(() => RunNoticeAction(kind)) : null });
             }
             UpdateCheckTick();
             UpdateUpdateNotice();
@@ -707,6 +768,7 @@ namespace NyangTalk.App
         private string _healthRetriedKey;
         private DateTime _healthRetriedAt;
         private LinkState? _reconnectResultLink;
+        private DateTime _reconnectResultUntil;
         /// <summary>A warning this soon after "다시 연결" in the same game run counts as the same stall (the warning needs 20 s).</summary>
         private static readonly TimeSpan RetriedFor = TimeSpan.FromMinutes(2);
 
@@ -729,17 +791,23 @@ namespace NyangTalk.App
             if (!_host.Chat.Receive.Warning) _form.Notices.Clear(NoticeKind.Health);
 
             var state = _host.Chat.Link;
+            _host.AddLog("reconnect: " + (read ? state.ToString() : "read failed") + (LoaderNotLoaded ? " (loader not loaded)" : ""));
+            // an install or move is running: its own result comes on this line; do not cover it
+            if (Busy) return;
             string text;
+            bool demo = _host.Demo != null;
             if (!read) text = L("reconnect.readFailed");
             else if (state == LinkState.Connected) text = L("reconnect.connected");
+            else if (demo) text = string.Format(L("reconnect.result"), _form.LinkText());   // the demo never points at the real game
+            else if (LoaderNotLoaded) text = L(LoaderKeptByUser ? "link.loaderNotLoadedKept" : "link.loaderNotLoaded");
             else text = string.Format(L("reconnect.result"), _form.LinkText()) + (state == LinkState.Disconnected ? " " + L("reconnect.restartHint") : "");
-            _host.AddLog("reconnect: " + (read ? state.ToString() : "read failed"));
 
             _confirmUntil = UtcNow() + TimeSpan.FromSeconds(15);
+            _reconnectResultUntil = _confirmUntil;
             _reconnectResultLink = state;
             // the next step the line would offer anyway (install, open Steam, ...), but never "다시 연결" again right away
-            var nextKind = read ? ConnectionAction(state, GameRunningCached(), ForeignModsBlocked || KeptSetupProblem) : NoticeActionKind.None;
-            bool offer = nextKind != NoticeActionKind.None && nextKind != NoticeActionKind.Reconnect && !Busy;
+            var nextKind = read && !demo ? CurrentConnectionAction(state) : NoticeActionKind.None;
+            bool offer = nextKind != NoticeActionKind.None && nextKind != NoticeActionKind.Reconnect;
             _form.Notices.Set(new NoticeEntry
             {
                 Key = "reconnect-result:" + UtcNow().Ticks,
@@ -759,7 +827,7 @@ namespace NyangTalk.App
                 _form.ShowNotice("result:" + UtcNow().Ticks, text);
                 // Keep the result visible on the top notice line itself (otherwise the priority-0 Connection notice hides the Info result)
                 _confirmUntil = UtcNow() + TimeSpan.FromSeconds(15);
-                var nextKind = ConnectionAction(_host.Chat.Link, GameRunningCached(), ForeignModsBlocked || KeptSetupProblem);
+                var nextKind = CurrentConnectionAction(_host.Chat.Link);
                 _form.Notices.Set(new NoticeEntry
                 {
                     Key = "link-result:" + UtcNow().Ticks,
@@ -1157,7 +1225,7 @@ namespace NyangTalk.App
             return Payload.Load(typeof(LinkServices).Assembly, Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "payload"), GameLinkVersion);
         }
 
-        public const string GameLinkVersion = "0.1.4";
+        public const string GameLinkVersion = "0.1.5";
 
         public string Describe(InstallResult r)
         {

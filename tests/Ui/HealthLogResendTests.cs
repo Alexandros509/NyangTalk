@@ -179,6 +179,66 @@ namespace NyangTalk.Tests
             }
         }
 
+        [Test("95-2.6,doorstop")]
+        public static void LoaderNotLoadedIsNamedAndOffersReinstall()
+        {
+            var t0 = new DateTime(2026, 11, 26, 2, 0, 0, DateTimeKind.Utc);
+            A.False(LoaderProbe.NotLoaded(t0, t0.AddHours(-2), t0.AddSeconds(10)), "game still starting: no judgement");
+            A.True(LoaderProbe.NotLoaded(t0, t0.AddHours(-2), t0.AddSeconds(31)), "config older than this game run: BepInEx did not load");
+            A.False(LoaderProbe.NotLoaded(t0, t0.AddSeconds(2), t0.AddMinutes(5)), "config rewritten after the start: loaded");
+            A.False(LoaderProbe.NotLoaded(t0, t0.AddSeconds(-3), t0.AddMinutes(5)), "clock difference within tolerance");
+            A.False(LoaderProbe.NotLoaded(null, t0, t0.AddMinutes(5)), "start unknown: never claimed");
+            A.False(LoaderProbe.NotLoaded(t0, null, t0.AddMinutes(5)), "no config file: never claimed");
+
+            using (var rig = new UiRig("loader", 3))
+            {
+                Shell.Link.UtcNow = () => rig.Clock.Now;
+                var f = rig.Form;
+                var L = (Func<string, string>)rig.Host.Prefs.L;
+                rig.Clock.Now = rig.Clock.Now.AddSeconds(8);   // the component stops writing
+                rig.Host.Chat.Poll();
+                Shell.Link.LoaderNotLoaded = true;
+                Shell.Link.UpdateNotices();
+                var n = f.Notices.Get(NoticeKind.Connection);
+                A.True(n != null && n.Text == L("link.loaderNotLoaded") && n.ActionText == L("notice.btn.reinstallRestart"), "named, with the reinstall that applies the fix: " + (n == null ? "none" : n.Text));
+                f.Reconnect();
+                n = f.Notices.Current;
+                A.True(n.Key.StartsWith("reconnect-result:") && n.Text == L("link.loaderNotLoaded") && n.ActionText == L("notice.btn.reinstallRestart"), "다시 연결 says the same and offers the same step, not itself");
+
+                // the user's own BepInEx was kept: reinstalling would not touch it, so no button that loops
+                Shell.Link.LoaderKeptByUser = true;
+                rig.Clock.Now = rig.Clock.Now.AddSeconds(20);
+                Shell.Link.UpdateNotices();
+                n = f.Notices.Get(NoticeKind.Connection);
+                A.True(n != null && n.Text == L("link.loaderNotLoadedKept") && n.ActionText == null, "kept loader: says to restart Steam, offers no reinstall");
+                f.Reconnect();
+                n = f.Notices.Current;
+                A.True(n.Text == L("link.loaderNotLoadedKept") && n.ActionText == null, "다시 연결 result says the same");
+                Shell.Link.LoaderKeptByUser = false;
+                Shell.Link.LoaderNotLoaded = false;
+
+                // a running install keeps its own result line: 다시 연결 does not cover it
+                Shell.Link.Busy = true;
+                var before = f.Notices.Current;
+                f.Reconnect();
+                A.True(f.Notices.Current == before, "busy: nothing replaced");
+                Shell.Link.Busy = false;
+
+                // the Park question asked from a 다시 연결 result keeps its minute even when the link changes meanwhile
+                Shell.Link.ForeignModsBlocked = true;
+                rig.Clock.Now = rig.Clock.Now.AddSeconds(20);
+                f.Reconnect();
+                var offer = f.Notices.Current;
+                A.True(offer.ActionText == L("notice.btn.park") && offer.Action != null, "result offers moving the other mods");
+                offer.Action();
+                A.True(f.Notices.Current.Key.StartsWith("confirm-park:"), "asks before moving");
+                rig.Step();   // the game writes again: Disconnected -> Connected
+                A.Eq(LinkState.Connected, rig.Host.Chat.Link, "link changed");
+                A.True(f.Notices.Current.Key.StartsWith("confirm-park:"), "the question stays; only a 다시 연결 result gives way to a link change");
+                Shell.Link.ForeignModsBlocked = false;
+            }
+        }
+
         [Test("95-2.5")]
         public static void LogFileRotatesAndKeepsNoPrivateData()
         {

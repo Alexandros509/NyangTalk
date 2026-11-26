@@ -52,15 +52,46 @@ namespace NyangTalk.Adapters.GameLink
                     {
                         s.CopyTo(ms);
                         var rel = name.Substring("payload/".Length);
-                        p.Add(rel, ms.ToArray(), IsBackupableMetadata(rel));
+                        p.Add(rel, Prepare(rel, ms.ToArray()), IsBackupableMetadata(rel));
                     }
             if (extraFolder != null && Directory.Exists(extraFolder))
                 foreach (var f in Directory.GetFiles(extraFolder, "*", SearchOption.AllDirectories))
                 {
                     var rel = f.Substring(extraFolder.Length).TrimStart('\\', '/');
-                    p.Add(rel, File.ReadAllBytes(f), IsBackupableMetadata(rel));
+                    p.Add(rel, Prepare(rel, File.ReadAllBytes(f)), IsBackupableMetadata(rel));
                 }
             return p;
+        }
+
+        public const string DoorstopConfig = "doorstop_config.ini";
+
+        /// <summary>The installed form of a payload file; only the doorstop configuration differs from the official file.</summary>
+        public static byte[] Prepare(string rel, byte[] data)
+        {
+            return string.Equals((rel ?? "").Replace('/', '\\'), DoorstopConfig, StringComparison.OrdinalIgnoreCase) ? IgnoreDisableSwitch(data) : data;
+        }
+
+        /// <summary>
+        /// Sets <c>ignore_disable_switch = true</c> (2026-11-26). Doorstop puts DOORSTOP_DISABLE=TRUE into the game's
+        /// environment; when the game itself starts Steam, Steam inherits it and every later game start from that Steam
+        /// skips BepInEx, so the connector never loads. Other lines and line endings stay as they are.
+        /// </summary>
+        public static byte[] IgnoreDisableSwitch(byte[] ini)
+        {
+            var text = new System.Text.UTF8Encoding(false).GetString(ini);
+            var lines = text.Split('\n');
+            bool found = false;
+            for (int i = 0; i < lines.Length; i++)
+            {
+                var t = lines[i].TrimEnd('\r').Trim();
+                if (t.StartsWith("#") || t.StartsWith(";")) continue;
+                int eq = t.IndexOf('=');
+                if (eq < 0 || !string.Equals(t.Substring(0, eq).Trim(), "ignore_disable_switch", StringComparison.OrdinalIgnoreCase)) continue;
+                lines[i] = "ignore_disable_switch = true" + (lines[i].EndsWith("\r") ? "\r" : "");
+                found = true;
+            }
+            if (!found) return ini;   // unknown layout: leave the official file untouched rather than guess a section
+            return new System.Text.UTF8Encoding(false).GetBytes(string.Join("\n", lines));
         }
     }
 

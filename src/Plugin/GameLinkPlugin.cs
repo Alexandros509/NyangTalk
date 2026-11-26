@@ -18,7 +18,7 @@ namespace NyangTalk.GameLink
     [BepInPlugin("local.nyangtalk.gamelink", "NyangTalk GameLink", Version)]
     public sealed partial class GameLinkPlugin : BaseUnityPlugin
     {
-        public const string Version = "0.1.4";
+        public const string Version = "0.1.5";
         private ContractRuntime _c;
         private string _dir;
         private float _next;
@@ -30,11 +30,39 @@ namespace NyangTalk.GameLink
         private readonly HashSet<string> _currentMembers = new HashSet<string>();
         private readonly ComponentErrors _errors = new ComponentErrors();
 
+        // ---------------------------------------------------------------- diagnostics
+        // The BepInEx disk log reaches its file only in 1024-character chunks and is not flushed when this game exits, so
+        // component faults were invisible. This file in the exchange folder is opened, written and closed for every line.
+        public const string DiagFile = "component-diag.log";
+        private const long DiagMaxBytes = 256 * 1024;
+        private long _diagBytes;
+        private bool _updateSeen;
+        private float _nextAlive;
+
+        private void Diag(string line)
+        {
+            try
+            {
+                if (_dir == null || _diagBytes > DiagMaxBytes) return;
+                var bytes = new UTF8Encoding(false).GetBytes(Exchange.Iso(DateTime.UtcNow) + " " + line + "\n");
+                using (var fs = new FileStream(Path.Combine(_dir, DiagFile), FileMode.Append, FileAccess.Write, FileShare.ReadWrite)) fs.Write(bytes, 0, bytes.Length);
+                _diagBytes += bytes.Length;
+            }
+            catch (Exception) { }   // diagnostics must never disturb the game
+        }
+
+        private void OnEnable() { Diag("OnEnable"); }
+        private void OnDisable() { Diag("OnDisable"); }
+        private void OnDestroy() { Diag("OnDestroy"); }
+
         private void Awake()
         {
             try
             {
                 _dir = Exchange.DefaultFolder();
+                Directory.CreateDirectory(_dir);
+                try { File.WriteAllText(Path.Combine(_dir, DiagFile), ""); } catch (Exception) { }
+                Diag("Awake " + Version + " go=" + gameObject.name + " hideFlags=" + gameObject.hideFlags);
                 var here = Path.GetDirectoryName(Info.Location);
                 var contract = ContractFile.Parse(Encoding.UTF8.GetString(File.ReadAllBytes(Path.Combine(here, "contract.json"))));
                 _c = new ContractRuntime(contract);
@@ -43,14 +71,17 @@ namespace NyangTalk.GameLink
                 Directory.CreateDirectory(Path.Combine(_dir, Exchange.OutboxDir));
                 Directory.CreateDirectory(Path.Combine(_dir, Exchange.ResultsDir));
                 Logger.LogInfo("NyangTalk GameLink " + Version + " ready; exchange: " + _dir);
+                Diag("Awake done; areas=" + _c.Areas.Count + " error=" + (_errors.Error ?? "none"));
             }
-            catch (Exception ex) { _errors.Set("init", ex.GetType().Name); Logger.LogError(ex); }
+            catch (Exception ex) { _errors.Set("init", ex.GetType().Name); Logger.LogError(ex); Diag("Awake failed: " + ex); }
         }
 
         private void Update()
         {
+            if (!_updateSeen) { _updateSeen = true; Diag("first Update t=" + Time.unscaledTime); }
             if (Time.unscaledTime < _next) return;
             _next = Time.unscaledTime + 1f;
+            if (Time.unscaledTime >= _nextAlive) { _nextAlive = Time.unscaledTime + 30f; Diag("alive hooked=" + _hooked + " lobby=" + (_lobbyId ?? "none") + " error=" + (_errors.Error ?? "none")); }
             if (_c == null)
             {
                 // start failed: still report it so the app does not wait forever
@@ -63,8 +94,34 @@ namespace NyangTalk.GameLink
             Safe("lobby", WriteLobby);
             Safe("outbox", ProcessOutbox);
             Safe("chest", ChestTick);
-            Safe("status", WriteStatus);
+            // The status file is the app's only sign of life: when the full status cannot be built, a minimal one still goes
+            // out (time, session, the fault), so the app shows the component error instead of "disconnected".
+            if (!_errors.Run("status", WriteStatus, ex => { Logger.LogWarning("status failed: " + ex.Message); Diag("status failed: " + ex); }))
+                Safe("status-min", WriteMinimalStatus);
         }
+
+        private void WriteMinimalStatus()
+        {
+            // the last full status keeps the room name, my Steam ID and the areas, so the app's header, echo matching and
+            // area notices stay as they were; only time, readiness and the fault change
+            var d = _lastFullStatus == null ? Exchange.Header(Version) : new Dictionary<string, object>(_lastFullStatus);
+            d["written_utc"] = Exchange.Iso(DateTime.UtcNow);
+            d["ready"] = false;
+            object last;
+            var lastLobby = d.TryGetValue("lobby", out last) ? last as Dictionary<string, object> : null;
+            object lastId = null;
+            bool sameRoom = lastLobby != null && lastLobby.TryGetValue("id", out lastId) && (lastId as string) == _lobbyId;
+            d["lobby"] = _lobbyId == null ? null : (sameRoom ? lastLobby : new Dictionary<string, object> { { "id", _lobbyId } });
+            d["can_send"] = false;
+            d["hooked"] = _hooked;
+            d["chat_events"] = _chatEvents;
+            d["error"] = _errors.Error;
+            if (!d.ContainsKey("areas")) d["areas"] = new Dictionary<string, object>();
+            d["game_session"] = _gameSession;
+            WriteAtomic(Exchange.StatusFile, Json.Write(d));
+        }
+
+        private Dictionary<string, object> _lastFullStatus;
 
         private DateTime _nextTrim = DateTime.MinValue;
 
@@ -79,7 +136,7 @@ namespace NyangTalk.GameLink
 
         private void Safe(string what, Action a)
         {
-            _errors.Run(what, a, ex => Logger.LogWarning(what + " failed: " + ex.Message));
+            _errors.Run(what, a, ex => { Logger.LogWarning(what + " failed: " + ex.Message); Diag(what + " failed: " + ex); });
         }
 
         // ---------------------------------------------------------------- receive
@@ -289,6 +346,7 @@ namespace NyangTalk.GameLink
             d["emotes"] = EmoteStatus();
             d["chest"] = new Dictionary<string, object> { { "state", _chest.State }, { "reason", _chest.Reason } };
             WriteAtomic(Exchange.StatusFile, Json.Write(d));
+            _lastFullStatus = d;
         }
 
         // ---------------------------------------------------------------- send

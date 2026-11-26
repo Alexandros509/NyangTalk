@@ -107,7 +107,7 @@ namespace NyangTalk.Adapters.Update
         public long Sequence;
         public string MinFromVersion;
         public bool GamePayloadChanged;
-        public string GameComponentVersion = "0.1.4";
+        public string GameComponentVersion = "0.1.5";
         public string GameComponentAccepts = ">=0.1.0 <0.2.0";
         public Dictionary<string, string> Notes = new Dictionary<string, string>();
         public List<string> Revoked = new List<string>();
@@ -154,7 +154,7 @@ namespace NyangTalk.Adapters.Update
             return list;
         }
 
-        /// <summary>The languages every update note needs: the app shows the note in its own language (signed, so it cannot be added later).</summary>
+        /// <summary>The languages every update note needs. The notes are signed inside update.json, so they cannot be added after release; the app reads and keeps them but does not show them yet (2026-11-26).</summary>
         public static readonly string[] NoteLanguages = { "ko", "en", "ja" };
 
         /// <summary>Null when every language has a note within the length the app accepts; otherwise why not.</summary>

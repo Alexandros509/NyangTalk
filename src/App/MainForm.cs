@@ -174,10 +174,18 @@ namespace NyangTalk.App
         /// path, so nothing escapes to a crash dialog), or a status file that was there before but could not be read now
         /// (the kept older status would otherwise be reported as the result).
         /// </summary>
+        public static int StatusRetryMs = 80;
+
         public bool ReadGameAgain()
         {
             bool ok = true;
-            try { _chat.Reconnect(); }
+            try
+            {
+                _chat.Reconnect();
+                // the component rewrites status.json in place every second: a click in that moment reads it half written,
+                // so one more read a moment later decides
+                if (!_chat.LastPollReadStatus && _chat.Status != null) { System.Threading.Thread.Sleep(StatusRetryMs); _chat.Poll(); }
+            }
             catch (Exception ex) { ok = false; _host.AddLog("reconnect: " + ex.GetType().Name + ": " + ex.Message); }
             if (ok && !_chat.LastPollReadStatus && _chat.Status != null) { ok = false; _host.AddLog("reconnect: status file not readable, kept the earlier status"); }
             UpdateHeader();

@@ -22,11 +22,61 @@ namespace NyangTalk.Tools
             try
             {
                 if (args.Length == 2 && args[0] == "keygen") return KeyGen(args[1]);
-                if (args.Length >= 6 && args[0] == "release") return Release(args);
+                if (args.Length >= 6 && args[0] == "release")
+                {
+                    int relaunched;
+                    if (RunFromCopyIfInBuild(args, out relaunched)) return relaunched;
+                    return Release(args);
+                }
                 Console.Error.WriteLine("usage: keygen <out.key> | release <version> <exe> <key> <sequence> <assetUrlBase> --notes <file.json> [--channel beta] [--game-payload-changed] [--breaking] [--prev X]");
                 return 1;
             }
             catch (Exception ex) { Console.Error.WriteLine(ex.GetType().Name + ": " + ex.Message); return 1; }
+        }
+
+        private const string CopyMark = "NYANGTALK_RELEASE_TOOL_COPY";
+
+        /// <summary>
+        /// The release runs build.ps1, which rebuilds build\NyangTalk.*.dll — the files this tool itself has loaded when it
+        /// runs from build\. So it copies itself and those libraries to a temporary folder and runs the copy (same working
+        /// folder, same console); the copy is removed afterwards. Uses only System types: nothing from build\ loads first.
+        /// </summary>
+        private static bool RunFromCopyIfInBuild(string[] args, out int exitCode)
+        {
+            exitCode = 0;
+            var here = AppDomain.CurrentDomain.BaseDirectory.TrimEnd('\\', '/');
+            var build = Path.Combine(Directory.GetCurrentDirectory(), "build");
+            if (Environment.GetEnvironmentVariable(CopyMark) != null || !string.Equals(Path.GetFullPath(here), Path.GetFullPath(build), StringComparison.OrdinalIgnoreCase)) return false;
+            var tmp = Path.Combine(Path.GetTempPath(), "nyangtalk-release-" + Guid.NewGuid().ToString("N").Substring(0, 8));
+            Directory.CreateDirectory(tmp);
+            try
+            {
+                var exe = Path.Combine(tmp, Path.GetFileName(System.Reflection.Assembly.GetEntryAssembly().Location));
+                File.Copy(System.Reflection.Assembly.GetEntryAssembly().Location, exe);
+                foreach (var dll in Directory.GetFiles(here, "NyangTalk.*.dll")) File.Copy(dll, Path.Combine(tmp, Path.GetFileName(dll)));
+                var psi = new ProcessStartInfo(exe, string.Join(" ", args.Select(Quote))) { UseShellExecute = false, WorkingDirectory = Directory.GetCurrentDirectory() };
+                psi.EnvironmentVariables[CopyMark] = "1";
+                using (var p = Process.Start(psi)) { p.WaitForExit(); exitCode = p.ExitCode; }
+                return true;
+            }
+            finally { try { Directory.Delete(tmp, true); } catch (IOException) { } catch (UnauthorizedAccessException) { } }
+        }
+
+        private static string Quote(string a)
+        {
+            if (a.Length > 0 && a.IndexOfAny(new[] { ' ', '\t', '"' }) < 0) return a;
+            // Windows argument rules: backslashes before a quote (or the closing quote) are doubled
+            var sb = new System.Text.StringBuilder("\"");
+            int slashes = 0;
+            foreach (var ch in a)
+            {
+                if (ch == '\\') { slashes++; continue; }
+                if (ch == '"') { sb.Append('\\', slashes * 2 + 1); sb.Append('"'); }
+                else { sb.Append('\\', slashes); sb.Append(ch); }
+                slashes = 0;
+            }
+            sb.Append('\\', slashes * 2);
+            return sb.Append('"').ToString();
         }
 
         private static string ReadPassword(string prompt)

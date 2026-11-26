@@ -20,6 +20,25 @@ namespace NyangTalk.Domain.GameLink
 
     public enum ExchangeVerdict { Ok, Invalid, SchemaMajorMismatch, ProducerOutOfRange }
 
+    /// <summary>
+    /// "BepInEx did not load in this game run" (2026-11-26): BepInEx rewrites BepInEx/config/BepInEx.cfg within seconds
+    /// of the game starting. When the game has run for a while and the file is still older than the game, the loader
+    /// skipped (e.g. Steam inherited DOORSTOP_DISABLE) and the connector cannot answer; reading the files again cannot help.
+    /// </summary>
+    public static class LoaderProbe
+    {
+        public static readonly TimeSpan Grace = TimeSpan.FromSeconds(30);
+        /// <summary>File times and process start times come from different clocks; this much earlier still counts as "this run".</summary>
+        public static readonly TimeSpan Tolerance = TimeSpan.FromSeconds(5);
+
+        public static bool NotLoaded(DateTime? gameStartUtc, DateTime? configWrittenUtc, DateTime nowUtc)
+        {
+            if (gameStartUtc == null || configWrittenUtc == null) return false;   // unknown: never claim it
+            if (nowUtc - gameStartUtc.Value < Grace) return false;               // still starting
+            return configWrittenUtc.Value < gameStartUtc.Value - Tolerance;
+        }
+    }
+
     /// <summary>Exchange format compatibility (40-SPEC 4장).</summary>
     public static class ExchangeCompatibility
     {

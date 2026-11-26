@@ -247,6 +247,31 @@ namespace NyangTalk.Tests
             A.True(e.Inst.Drift(e.Game).Contains("winhttp.dll"), "drift found → offer reinstall");
         }
 
+        [Test("40-6,doorstop")]
+        public static void InstalledDoorstopConfigIgnoresInheritedDisableSwitch()
+        {
+            var official = File.ReadAllBytes(Path.Combine(Ctx.Root, "third_party", "BepInEx", "payload", "doorstop_config.ini"));
+            var text = Encoding.UTF8.GetString(official);
+            A.True(text.Contains("ignore_disable_switch = false"), "the official file keeps its default");
+            var installed = Encoding.UTF8.GetString(Payload.Prepare("doorstop_config.ini", official));
+            A.True(installed.Contains("ignore_disable_switch = true") && !installed.Contains("ignore_disable_switch = false"), "installed config ignores DOORSTOP_DISABLE");
+            var before = text.Split('\n').Where(l => !l.Contains("ignore_disable_switch =")).ToList();
+            var after = installed.Split('\n').Where(l => !l.Contains("ignore_disable_switch =")).ToList();
+            A.True(before.SequenceEqual(after), "every other line, and its line ending, unchanged");
+            A.True(Payload.Prepare("doorstop_config.ini", Payload.Prepare("doorstop_config.ini", official)).SequenceEqual(Payload.Prepare("doorstop_config.ini", official)), "applying twice changes nothing more");
+            var comment = Encoding.UTF8.GetBytes("# ignore_disable_switch = false\n[General]\n");
+            A.True(Payload.Prepare("doorstop_config.ini", comment).SequenceEqual(comment), "unknown layout or comment only: left as the official file");
+            A.True(Payload.Prepare(@"BepInEx\core\BepInEx.dll", official).SequenceEqual(official), "other payload files are never changed");
+
+            // end to end: the installed file is the prepared one and the record matches it (no drift right after install)
+            var e = New("i12");
+            var p = Pay("0.1.5", @"BepInEx\core\BepInEx.dll", "winhttp.dll", Installer.PluginDll, Installer.PluginDir + @"\contract.json");
+            p.Add("doorstop_config.ini", Payload.Prepare("doorstop_config.ini", official), false);
+            A.Eq(InstallOutcome.Done, e.Inst.Install(e.Game, p).Outcome, "installed");
+            A.True(File.ReadAllText(Path.Combine(e.Game, "doorstop_config.ini")).Contains("ignore_disable_switch = true"), "game folder has the switch on");
+            A.Eq(0, e.Inst.Drift(e.Game).Count, "record matches the installed config");
+        }
+
         /// <summary>40-1.1 수락: 설치 전 검사가 혼용 문제를 막고, 고친 구성은 통과 (synthetic libraries named like the real case).</summary>
         [Test("40-1.1,10-11.2(합성),10-11.4(합성)")]
         public static void PrecheckBlocksMixingAndPassesWhenFixed()

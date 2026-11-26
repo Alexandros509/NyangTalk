@@ -1,0 +1,5 @@
+{
+  "ko": "게임이 Steam을 다시 띄운 뒤 연결 구성요소가 로드되지 않던 문제를 고쳤습니다. 구성요소 0.1.5를 다시 설치하고 게임을 재시작해야 적용됩니다. 로드되지 않은 경우에는 알림줄에서 바로 안내합니다.",
+  "en": "Fixes the connector not loading after the game restarted Steam. Reinstall connector 0.1.5 and restart the game to apply it. If the connector did not load, the notice line now says so.",
+  "ja": "ゲームがSteamを起動し直した後に接続コンポーネントが読み込まれない問題を修正しました。コンポーネント0.1.5を再インストールしてゲームを再起動すると適用されます。読み込まれていない場合は案内帯でお知らせします。"
+}

@@ -22,6 +22,12 @@ Changed by NyangTalk: `BepInEx/payload/doorstop_config.ini`, only `dll_search_pa
 (was empty). Doorstop 4.6.0 resolves the relative path with `GetFullPathName` against the working directory, like its
 default `target_assembly` (`src/windows/config.c`, `src/bootstrap.c` in the source archive). Line endings kept (CRLF).
 
+Changed at install time (0.1.8, connector 0.1.5): the installer writes `doorstop_config.ini` with
+`ignore_disable_switch = true` (`Payload.Prepare` in `src/Adapters/GameLink/Installer.cs`); the file kept here and
+embedded in the exe stays as listed in `BepInEx/hashes.txt`. Reason: Doorstop puts `DOORSTOP_DISABLE=TRUE` into the
+game's environment; when the game itself starts Steam, Steam inherits it and every later game start from that Steam
+skipped BepInEx (observed 2026-11-26).
+
 ## Windows runtime correction (2026-11-23)
 
 The original `6000.2.8.zip` corlib profile above caused `DllNotFoundException: System.Native` in the actual Windows

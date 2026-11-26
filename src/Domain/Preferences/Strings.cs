@@ -244,6 +244,8 @@ namespace NyangTalk.Domain.Preferences
             T("reconnect.connected", "다시 확인했어요. 게임과 연결돼 있어요", "Checked again. Connected to the game", "再確認しました。ゲームと接続しています");
             T("reconnect.result", "다시 확인했어요: {0}", "Checked again: {0}", "再確認しました: {0}");
             T("reconnect.restartHint", "게임이 켜져 있는데 계속 이렇다면 게임을 다시 시작해 주세요", "If the game is open and this continues, please restart it", "ゲームが起動中でこの状態が続くなら、ゲームを再起動してください");
+            T("link.loaderNotLoadedKept", "게임은 켜져 있지만 BepInEx가 로드되지 않았어요. 기존 BepInEx를 그대로 쓰고 있어서 다시 설치로는 고칠 수 없어요. Steam을 완전히 종료했다가 다시 켜 주세요", "The game is running, but BepInEx did not load. Your own BepInEx was kept, so reinstalling cannot fix it. Fully exit Steam and start it again", "ゲームは起動していますが、BepInExが読み込まれていません。既存のBepInExをそのまま使っているため、再インストールでは直せません。Steamを完全に終了してから起動し直してください");
+            T("link.loaderNotLoaded","게임은 켜져 있지만 연결 구성요소가 로드되지 않았어요. '설치하고 게임 재시작'을 누르거나, Steam을 완전히 종료했다가 다시 켜 주세요", "The game is running, but the connector did not load. Press 'Install and restart the game', or fully exit Steam and start it again", "ゲームは起動していますが、接続コンポーネントが読み込まれていません。「インストールしてゲームを再起動」を押すか、Steamを完全に終了してから起動し直してください");
             T("reconnect.readFailed", "게임 파일을 읽지 못했어요. 잠시 뒤 다시 눌러 주세요", "Could not read the game files. Please try again in a moment", "ゲームのファイルを読めませんでした。少し待ってからもう一度押してください");
             T("health.receiveStuckAgain", "다시 연결해도 채팅이 들어오지 않아요. 게임을 다시 시작해 주세요", "Chat still is not arriving after reconnecting. Please restart the game", "再接続してもチャットが届きません。ゲームを再起動してください");
             T("health.receiveStuck","게임은 채팅을 받았다는데 이 창에는 들어오지 않고 있어요", "The game received chat, but it is not reaching this window", "ゲームはチャットを受け取っていますが、このウィンドウに届いていません");
